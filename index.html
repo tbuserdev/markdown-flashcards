@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Flashcards Trainer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Fonts: Space Grotesk and JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Wendet das Dark Theme standardmässig an */
+      html.dark {
+        color-scheme: dark;
+      }
+      /* Nutzt die "Space Grotesk" Schriftart */
+      body {
+        font-family: "Space Grotesk", sans-serif;
+      }
+      /* Custom Scrollbar - Minimal */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #404040;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #525252;
+      }
+
+      /* Markdown Styling */
+      #question-text h1,
+      #question-text h2,
+      #question-text h3,
+      #answer-text h1,
+      #answer-text h2,
+      #answer-text h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        font-weight: 500;
+        color: #e5e5e5;
+      }
+
+      #question-text h1,
+      #answer-text h1 {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+      }
+
+      #question-text h2,
+      #answer-text h2 {
+        font-size: 1.5rem;
+        line-height: 2rem;
+      }
+
+      #question-text h3,
+      #answer-text h3 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+
+      #question-text p,
+      #answer-text p {
+        margin-bottom: 1rem;
+        line-height: 1.75;
+      }
+
+      #question-text ul,
+      #answer-text ul,
+      #question-text ol,
+      #answer-text ol {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.75;
+      }
+
+      #question-text ul,
+      #answer-text ul {
+        list-style-type: disc;
+      }
+
+      #question-text ol,
+      #answer-text ol {
+        list-style-type: decimal;
+      }
+
+      #question-text li,
+      #answer-text li {
+        margin-bottom: 0.5rem;
+      }
+
+      #question-text code,
+      #answer-text code {
+        background-color: #262626;
+        color: #a3a3a3;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.875em;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      #question-text pre,
+      #answer-text pre {
+        background-color: #171717;
+        border: 1px solid #262626;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+      }
+
+      #question-text pre code,
+      #answer-text pre code {
+        background-color: transparent;
+        padding: 0;
+        color: #d4d4d4;
+      }
+
+      #question-text blockquote,
+      #answer-text blockquote {
+        border-left: 2px solid #525252;
+        padding-left: 1rem;
+        margin-left: 0;
+        margin-bottom: 1rem;
+        color: #a3a3a3;
+        font-style: normal;
+      }
+
+      #question-text strong,
+      #answer-text strong {
+        font-weight: 600;
+        color: #fafafa;
+      }
+
+      #question-text em,
+      #answer-text em {
+        font-style: italic;
+        color: #d4d4d4;
+      }
+
+      #question-text a,
+      #answer-text a {
+        color: #737373;
+        text-decoration: underline;
+      }
+
+      #question-text a:hover,
+      #answer-text a:hover {
+        color: #a3a3a3;
+      }
+
+      #question-text hr,
+      #answer-text hr {
+        border: 0;
+        border-top: 1px solid #404040;
+        margin: 1.5rem 0;
+      }
+
+      #question-text table,
+      #answer-text table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+      }
+
+      #question-text th,
+      #answer-text th,
+      #question-text td,
+      #answer-text td {
+        border: 1px solid #404040;
+        padding: 0.5rem;
+        text-align: left;
+      }
+
+      #question-text th,
+      #answer-text th {
+        background-color: #262626;
+        font-weight: 500;
+      }
+
+      /* Key Hint Styling */
+      .key-hint {
+        display: inline-block;
+        background-color: #404040;
+        color: #e5e5e5;
+        border: 1px solid #525252;
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.375rem;
+        margin-left: 0.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.025em;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Importer Button Hover */
+      .hover-area:hover #toggle-importer-btn {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Bottom Toggle Button Rotation */
+      #bottom-toggle-btn {
+        transition: opacity 0.3s ease;
+      }
+      #importer-container:not(.hidden) ~ #bottom-toggle-btn {
+        display: none;
+      }
+
+      /* Classification Button Shading */
+      #btn-hard {
+        background-color: rgba(220, 38, 38, 0.1);
+      }
+      #btn-medium {
+        background-color: rgba(245, 158, 11, 0.1);
+      }
+      #btn-easy {
+        background-color: rgba(34, 197, 94, 0.1);
+      }
+
+      /* Hide keyboard hints on smaller screens */
+      @media (max-width: 640px) {
+        .key-hint {
+          display: none;
+        }
+        #classification-buttons {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .classify-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-neutral-950 text-neutral-400 flex flex-col items-center justify-center min-h-screen p-4 md:p-8 pb-20 selection:bg-neutral-700 selection:text-white"
+  >
+    <!-- URL Fetcher -->
+    <div
+      class="fixed bottom-0 left-0 right-0 bg-neutral-950 p-4 border-t border-neutral-800 hidden"
+      id="importer-container"
+    >
+      <div
+        class="w-full max-w-4xl mx-auto bg-neutral-900 rounded p-4 border border-neutral-800 flex flex-col sm:flex-row items-center gap-3"
+      >
+        <input
+          type="text"
+          id="md-url-input"
+          placeholder="GitHub, GitLab, OneDrive, Google Drive, Gist URL..."
+          class="flex-grow bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-neutral-200 focus:ring-1 focus:ring-neutral-500 focus:outline-none"
+        />
+        <div class="flex gap-2">
+          <button
+            id="fetch-md-btn"
+            class="py-2 px-4 rounded font-normal bg-neutral-100 hover:bg-white text-neutral-900 transition-colors"
+          >
+            LOAD
+          </button>
+          <button
+            id="clear-storage-btn"
+            class="py-2 px-4 rounded font-normal bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
+          >
+            DELETE ALL
+          </button>
+          <button
+            id="close-importer-btn"
+            class="ml-auto text-neutral-400 hover:text-neutral-200 text-xl font-bold"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Haupt-Lernkarte -->
+    <div
+      class="w-full max-w-4xl bg-neutral-900 rounded border border-neutral-800 overflow-hidden flex flex-col"
+      style="min-height: 60vh"
+    >
+      <!-- Statusleiste oben -->
+      <div
+        id="status-bar"
+        class="p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-neutral-800"
+      >
+        <!-- Filter-Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span
+            class="text-sm font-normal text-neutral-500 pr-2 hidden sm:inline"
+            >Filter:</span
+          >
+          <button
+            data-filter="all"
+            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
+          >
+            Alle (<span id="count-all">0</span>)
+          </button>
+          <button
+            data-filter="unseen"
+            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+          >
+            Übrig (<span id="count-unseen">0</span>)
+          </button>
+          <button
+            data-filter="easy"
+            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+          >
+            Easy (<span id="count-easy">0</span>)
+          </button>
+          <button
+            data-filter="medium"
+            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+          >
+            Medium (<span id="count-medium">0</span>)
+          </button>
+          <button
+            data-filter="hard"
+            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+          >
+            Hard (<span id="count-hard">0</span>)
+          </button>
+        </div>
+        <!-- Navigations-Zähler und Importer Button -->
+        <div class="flex items-center gap-4">
+          <div
+            id="question-counter"
+            class="text-sm font-normal text-neutral-500 flex items-center"
+          >
+            Frage 0 / 0
+            <span
+              class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
+              >i</span
+            >
+          </div>
+          <button
+            id="toggle-importer-btn"
+            class="hidden py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+          >
+            Open Importer
+          </button>
+        </div>
+      </div>
+
+      <!-- Fragen- und Antwortbereich (flex-grow) -->
+      <div class="flex-grow overflow-y-auto p-6 md:p-10">
+        <!-- Frage -->
+        <div id="question-area">
+          <div
+            class="text-lg md:text-xl font-normal text-neutral-100 mb-6"
+            id="question-text"
+          >
+            Lade Fragen...
+          </div>
+        </div>
+
+        <!-- Antwort (standardmässig versteckt) -->
+        <div id="answer-area" class="hidden pt-6 border-t border-neutral-800">
+          <h3 class="text-base font-normal text-neutral-400 mb-4">Antwort</h3>
+          <div
+            id="answer-text"
+            class="text-neutral-300 leading-relaxed text-base"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Kontroll-Leiste (Footer) -->
+      <div
+        id="controls-area"
+        class="p-4 bg-neutral-900 border-t border-neutral-800 flex items-end sm:items-center justify-between"
+      >
+        <!-- Previous Button -->
+        <button
+          id="prev-btn"
+          class="py-3 px-6 rounded font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          &larr;
+        </button>
+
+        <!-- Show Answer Button (shown before answer is revealed) -->
+        <button
+          id="show-answer-btn"
+          class="py-2 px-5 rounded font-normal bg-neutral-100 hover:bg-white text-neutral-900 transition-colors text-base sm:mb-0 mb-1"
+        >
+          Antwort anzeigen <span class="key-hint">␣</span>
+        </button>
+
+        <!-- Classification Buttons (shown after answer is revealed) -->
+        <div id="classification-buttons" class="hidden flex items-center gap-2">
+          <button
+            id="btn-hard"
+            data-status="hard"
+            class="classify-btn py-2 px-5 rounded font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors text-base focus:ring-1 ring-neutral-600 ring-offset-1 ring-offset-neutral-900"
+          >
+            Hard <span class="key-hint">1</span>
+          </button>
+          <button
+            id="btn-medium"
+            data-status="medium"
+            class="classify-btn py-2 px-5 rounded font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors text-base focus:ring-1 ring-neutral-600 ring-offset-1 ring-offset-neutral-900"
+          >
+            Medium <span class="key-hint">2</span>
+          </button>
+          <button
+            id="btn-easy"
+            data-status="easy"
+            class="classify-btn py-2 px-5 rounded font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors text-base focus:ring-1 ring-neutral-600 ring-offset-1 ring-offset-neutral-900"
+          >
+            Easy <span class="key-hint">3</span>
+          </button>
+        </div>
+
+        <!-- Next Button -->
+        <button
+          id="next-btn"
+          class="py-3 px-6 rounded font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Toggle Button for Importer -->
+    <button
+      id="bottom-toggle-btn"
+      class="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-neutral-400 py-2 px-3 rounded transition-colors text-lg font-bold hover:text-neutral-200"
+    >
+      ^
+    </button>
+
+    <!-- JavaScript Logik -->
+    <script type="module">
+      // --- App-Status ---
+      let questions = []; // Array für { q: '...', a: '...', status: 'unseen' }
+      let currentQuestionIndex = 0;
+      let currentFilter = "all";
+      let filteredIndices = []; // Hält die Indizes der Fragen, die dem aktuellen Filter entsprechen
+
+      // --- DOM-Elemente ---
+      const questionTextEl = document.getElementById("question-text");
+      const answerAreaEl = document.getElementById("answer-area");
+      const answerTextEl = document.getElementById("answer-text");
+      const questionCounterEl = document.getElementById("question-counter");
+      const showAnswerBtn = document.getElementById("show-answer-btn");
+      const nextBtn = document.getElementById("next-btn");
+      const prevBtn = document.getElementById("prev-btn");
+      const classifyButtons = document.querySelectorAll(".classify-btn");
+      const filterButtons = document.querySelectorAll(".filter-btn");
+      const classificationButtonsContainer = document.getElementById(
+        "classification-buttons"
+      );
+
+      // URL Fetcher Elemente
+      const urlInput = document.getElementById("md-url-input");
+      const fetchBtn = document.getElementById("fetch-md-btn");
+      const clearBtn = document.getElementById("clear-storage-btn");
+      const toggleImporterBtn = document.getElementById("toggle-importer-btn");
+      const importerContainer = document.getElementById("importer-container");
+      const closeImporterBtn = document.getElementById("close-importer-btn");
+
+      // Zähler-Elemente
+      const countAllEl = document.getElementById("count-all");
+      const countUnseenEl = document.getElementById("count-unseen");
+      const countEasyEl = document.getElementById("count-easy");
+      const countMediumEl = document.getElementById("count-medium");
+      const countHardEl = document.getElementById("count-hard");
+
+      // --- Initialisierung ---
+
+      /**
+       * Initialisiert die gesamte Anwendung. Wird beim Laden der Seite aufgerufen.
+       */
+      async function init() {
+        // Event Listeners für die Haupt-Lern-UI
+        showAnswerBtn.addEventListener("click", showAnswer);
+        nextBtn.addEventListener("click", goToNext);
+        prevBtn.addEventListener("click", goToPrev);
+        classifyButtons.forEach((btn) => {
+          btn.addEventListener("click", () =>
+            classifyQuestion(btn.dataset.status)
+          );
+        });
+        filterButtons.forEach((btn) => {
+          btn.addEventListener("click", () => applyFilter(btn.dataset.filter));
+        });
+
+        // Event Listeners für die neue URL-Fetcher-UI
+        fetchBtn.addEventListener("click", fetchAndSaveFromUrl);
+        clearBtn.addEventListener("click", clearLocalStorageAndReload);
+        toggleImporterBtn.addEventListener("click", toggleImporter);
+        toggleImporterBtn.textContent = "Open Importer"; // Initial text since importer is hidden
+        closeImporterBtn.addEventListener("click", toggleImporter);
+        urlInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") fetchAndSaveFromUrl();
+        });
+
+        // Bottom toggle button
+        const bottomToggleBtn = document.getElementById("bottom-toggle-btn");
+        bottomToggleBtn.addEventListener("click", toggleImporter);
+
+        // Tastatur-Steuerung für die Lernkarten
+        document.addEventListener("keydown", (e) => {
+          // Verhindern, dass die Steuerung ausgelöst wird, wenn man im Input-Feld ist
+          if (document.activeElement === urlInput) return;
+
+          if (e.key === "ArrowRight") goToNext();
+          if (e.key === "ArrowLeft") goToPrev();
+          if (e.key === " ") {
+            e.preventDefault(); // Verhindert Scrollen der Seite
+            showAnswer();
+          }
+          if (e.key === "1") classifyQuestion("hard");
+          if (e.key === "2") classifyQuestion("medium");
+          if (e.key === "3") classifyQuestion("easy");
+        });
+
+        // Lade den Markdown-Inhalt und starte die App
+        await loadInitialMarkdown();
+      }
+
+      /**
+       * Lädt den initialen Markdown-Inhalt aus LocalStorage oder lokal.
+       */
+      async function loadInitialMarkdown() {
+        let markdownContent = localStorage.getItem("markdownContent");
+        if (!markdownContent) {
+          console.log("Kein Markdown im LocalStorage. Lade lokale 'input.md'.");
+          try {
+            // Für lokale Entwicklung: Fetch funktioniert nicht bei file:// Protokoll wegen CORS.
+            // Verwende stattdessen einen lokalen Server (z.B. python -m http.server) oder bette den Inhalt ein.
+            // Als Workaround: Setze einen Platzhalter-Text.
+            markdownContent =
+              "# Platzhalter\n\nFrage 1\n---\nAntwort 1\n\n\nFrage 2\n---\nAntwort 2";
+            console.warn(
+              "Lokales Laden nicht möglich. Verwende Platzhalter-Inhalt."
+            );
+          } catch (error) {
+            console.error("Fehler beim Laden der lokalen 'input.md':", error);
+            markdownContent =
+              "# Fehler\n\nKeine Daten gefunden.\n---\nStarte mit leerer App.";
+          }
+        }
+        reinitializeWithContent(markdownContent);
+      }
+
+      /**
+       * Setzt den Zustand der App zurück und initialisiert sie mit neuem Inhalt.
+       */
+      function reinitializeWithContent(markdownContent) {
+        // Reset state
+        questions = [];
+        currentQuestionIndex = 0;
+        currentFilter = "all";
+        filteredIndices = [];
+
+        // Parse new content
+        parseQuestions(markdownContent);
+        loadStatus(); // Lade Status für die (potenziell) neuen Fragen
+        applyFilter("all"); // Starte immer mit dem "all" Filter
+
+        console.log(`App reinitialisiert. ${questions.length} Fragen geladen.`);
+      }
+
+      // --- Daten- und Persistenz-Logik ---
+
+      /**
+       * Holt Markdown von der eingegebenen URL, speichert es und initialisiert die App neu.
+       */
+      async function fetchAndSaveFromUrl() {
+        let url = urlInput.value.trim();
+        if (!url) {
+          alert("Bitte eine URL eingeben.");
+          return;
+        }
+
+        // URL-Transformationen für gängige Dienste
+        url = await transformUrl(url);
+
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(
+              `Fetch fehlgeschlagen: ${response.status} ${response.statusText}`
+            );
+          }
+          const markdownContent = await response.text();
+
+          // Speichere den neuen Inhalt im LocalStorage
+          localStorage.setItem("markdownContent", markdownContent);
+
+          // Setze auch den Lernstatus zurück, da der Inhalt neu ist
+          localStorage.removeItem("ipgLernStatus");
+
+          alert(
+            "Markdown erfolgreich geladen und gespeichert! Die Seite wird neu initialisiert."
+          );
+
+          // Initialisiere die App mit dem neuen Inhalt
+          reinitializeWithContent(markdownContent);
+        } catch (error) {
+          console.error("Fehler beim Fetchen der URL:", error);
+          alert(
+            `Fehler beim Laden der URL. Prüfe die URL und die Browser-Konsole für Details. \n\nFehler: ${error.message}`
+          );
+        }
+      }
+
+      /**
+       * Transformiert eine gegebene URL in eine direkte "raw" Content-URL.
+       * Unterstützt GitHub, GitLab, OneDrive, Google Drive und GitHub Gist.
+       */
+      async function transformUrl(url) {
+        // GitHub Gist (handle first before generic GitHub)
+        if (
+          url.includes("gist.github.com") &&
+          !url.includes("gist.githubusercontent.com")
+        ) {
+          // Example: https://gist.github.com/tbuserdev/a094a79d3e9296c8390b8cced7095508
+          // Get the gist ID from the URL
+          const parts = url.split("/");
+          const gistId = parts[parts.length - 1].split("#")[0]; // Remove any fragment
+
+          try {
+            // Fetch the gist API to get file information
+            const apiResponse = await fetch(
+              `https://api.github.com/gists/${gistId}`
+            );
+            if (apiResponse.ok) {
+              const gistData = await apiResponse.json();
+              // Get the first .md file or the first file if no .md exists
+              const files = Object.values(gistData.files);
+              const mdFile =
+                files.find((f) => f.filename.endsWith(".md")) || files[0];
+              if (mdFile && mdFile.raw_url) {
+                return mdFile.raw_url;
+              }
+            }
+          } catch (error) {
+            console.warn(
+              "Could not fetch gist API, falling back to default raw URL:",
+              error
+            );
+          }
+
+          // Fallback: construct raw URL without specific file
+          const username = parts[3];
+          return `https://gist.githubusercontent.com/${username}/${gistId}/raw/`;
+        }
+        // GitHub
+        if (
+          url.includes("github.com") &&
+          !url.includes("raw.githubusercontent.com") &&
+          !url.includes("gist.github.com")
+        ) {
+          return url
+            .replace("github.com", "raw.githubusercontent.com")
+            .replace("/blob/", "/");
+        }
+        // GitLab
+        if (url.includes("gitlab.com") && !url.includes("raw")) {
+          return url.replace("/-/blob/", "/-/raw/");
+        }
+        // OneDrive
+        if (
+          url.includes("1drv.ms") ||
+          (url.includes("onedrive.live.com") && !url.includes("download.aspx"))
+        ) {
+          const base64Url = btoa(url)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+          return `https://api.onedrive.com/v1.0/shares/u!${base64Url}/root/content`;
+        }
+        // Google Drive
+        if (url.includes("drive.google.com")) {
+          const match = url.match(/\/(?:file|document)\/d\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            const fileId = match[1];
+            return `https://docs.google.com/document/d/${fileId}/export?format=txt`;
+          }
+        }
+        return url;
+      }
+
+      /**
+       * Löscht alle relevanten Daten aus dem LocalStorage und lädt die Seite neu.
+       */
+      function clearLocalStorageAndReload() {
+        if (
+          confirm(
+            "Willst du wirklich alle gespeicherten Daten (Markdown und Lernfortschritt) löschen?"
+          )
+        ) {
+          localStorage.removeItem("markdownContent");
+          localStorage.removeItem("ipgLernStatus");
+          alert(
+            "Alle Daten gelöscht. Die Seite wird mit den Standard-Fragen neu geladen."
+          );
+          location.reload();
+        }
+      }
+
+      /**
+       * Parst den Markdown-Inhalt in ein Fragen-Array.
+       */
+      function parseQuestions(markdownContent) {
+        if (!markdownContent) return;
+        // Splittet den Text in Q/A-Paare. Jedes Paar ist durch \n\n\n getrennt.
+        const entries = markdownContent.trim().split(/\n\s*\n\s*\n/);
+
+        for (const entry of entries) {
+          // Jedes Paar wird durch \n---\n in Frage und Antwort geteilt.
+          const parts = entry.trim().split("\n---\n");
+          if (parts.length === 2) {
+            questions.push({
+              q: parts[0].trim(),
+              a: parts[1].trim(),
+              status: "unseen", // 'unseen', 'easy', 'medium', 'hard'
+            });
+          }
+        }
+      }
+
+      // --- UI-Logik ---
+
+      /**
+       * Zeigt eine spezifische Frage basierend auf dem globalen Index an.
+       */
+      function displayQuestion(index) {
+        if (index < 0 || index >= questions.length) {
+          // Fallback, falls keine Fragen da sind
+          questionTextEl.textContent =
+            "Keine Fragen gefunden. Lade eine Markdown-Datei.";
+          answerTextEl.textContent = "";
+          answerAreaEl.classList.add("hidden");
+          questionCounterEl.textContent = "0 / 0";
+          return;
+        }
+
+        currentQuestionIndex = index;
+        const qData = questions[index];
+
+        questionTextEl.innerHTML = marked.parse(qData.q);
+        answerTextEl.innerHTML = marked.parse(qData.a);
+        answerAreaEl.classList.add("hidden");
+        showAnswerBtn.classList.remove("hidden");
+        classificationButtonsContainer.classList.add("hidden");
+
+        updateQuestionCounter();
+        updateClassifyButtonStates();
+        updateNavButtonStates();
+      }
+
+      /**
+       * Zeigt die Antwort für die aktuelle Frage an.
+       */
+      function showAnswer() {
+        if (questions.length === 0) return;
+        answerAreaEl.classList.remove("hidden");
+        showAnswerBtn.classList.add("hidden");
+        classificationButtonsContainer.classList.remove("hidden");
+      }
+
+      /**
+       * Weist der aktuellen Frage einen Status zu und speichert.
+       */
+      function classifyQuestion(status) {
+        if (questions.length === 0) return;
+        questions[currentQuestionIndex].status = status;
+        showAnswer();
+        updateClassifyButtonStates();
+        updateSummaryCounts();
+        saveStatus();
+        goToNext(); // Automatically move to the next card after categorization
+      }
+
+      /**
+       * Wendet einen Filter auf die Fragenliste an.
+       */
+      function applyFilter(filter) {
+        currentFilter = filter;
+
+        if (filter === "all") {
+          filteredIndices = questions.map((_, i) => i);
+        } else {
+          filteredIndices = questions
+            .map((q, i) => ({ status: q.status, index: i }))
+            .filter((q) => q.status === filter)
+            .map((q) => q.index);
+        }
+
+        // Update Filter-Button-Styling
+        filterButtons.forEach((btn) => {
+          const isActive = btn.dataset.filter === filter;
+
+          // Reset all buttons to inactive state
+          btn.classList.remove(
+            "bg-neutral-100",
+            "text-neutral-900",
+            "ring-1",
+            "ring-neutral-100"
+          );
+          btn.classList.add(
+            "bg-neutral-800",
+            "hover:bg-neutral-700",
+            "text-neutral-300"
+          );
+
+          // Make active button white
+          if (isActive) {
+            btn.classList.remove(
+              "bg-neutral-800",
+              "hover:bg-neutral-700",
+              "text-neutral-300"
+            );
+            btn.classList.add("bg-neutral-100", "text-neutral-900");
+          }
+        });
+
+        updateSummaryCounts();
+
+        if (filteredIndices.length > 0) {
+          displayQuestion(filteredIndices[0]);
+        } else {
+          questionTextEl.textContent =
+            "Keine Fragen in diesem Filter gefunden.";
+          answerTextEl.textContent = "";
+          answerAreaEl.classList.add("hidden");
+          questionCounterEl.textContent = "0 / 0";
+          // Disable nav buttons if no questions
+          prevBtn.disabled = true;
+          nextBtn.disabled = true;
+        }
+      }
+
+      /**
+       * Geht zur nächsten Frage im aktuellen Filter.
+       */
+      function goToNext() {
+        const currentFilteredIndex =
+          filteredIndices.indexOf(currentQuestionIndex);
+        if (currentFilteredIndex < filteredIndices.length - 1) {
+          displayQuestion(filteredIndices[currentFilteredIndex + 1]);
+        }
+      }
+
+      /**
+       * Geht zur vorherigen Frage im aktuellen Filter.
+       */
+      function goToPrev() {
+        const currentFilteredIndex =
+          filteredIndices.indexOf(currentQuestionIndex);
+        if (currentFilteredIndex > 0) {
+          displayQuestion(filteredIndices[currentFilteredIndex - 1]);
+        }
+      }
+
+      // --- UI-Update-Funktionen ---
+
+      function updateQuestionCounter() {
+        const currentFilteredIndex =
+          filteredIndices.indexOf(currentQuestionIndex);
+        questionCounterEl.textContent = `Frage ${currentFilteredIndex + 1} / ${
+          filteredIndices.length
+        }`;
+      }
+
+      function updateNavButtonStates() {
+        const currentFilteredIndex =
+          filteredIndices.indexOf(currentQuestionIndex);
+        prevBtn.disabled = currentFilteredIndex === 0;
+        nextBtn.disabled = currentFilteredIndex === filteredIndices.length - 1;
+      }
+
+      function updateClassifyButtonStates() {
+        if (questions.length === 0) return;
+        const currentStatus = questions[currentQuestionIndex].status;
+        classifyButtons.forEach((btn) => {
+          // Removed active state styling
+        });
+      }
+
+      function updateSummaryCounts() {
+        let counts = {
+          all: questions.length,
+          unseen: 0,
+          easy: 0,
+          medium: 0,
+          hard: 0,
+        };
+        for (const q of questions) {
+          counts[q.status]++;
+        }
+        countAllEl.textContent = counts.all;
+        countUnseenEl.textContent = counts.unseen;
+        countEasyEl.textContent = counts.easy;
+        countMediumEl.textContent = counts.medium;
+        countHardEl.textContent = counts.hard;
+      }
+
+      // --- Persistenz (Speichern & Laden des Lernfortschritts) ---
+
+      function saveStatus() {
+        const statuses = questions.map((q) => q.status);
+        try {
+          localStorage.setItem("ipgLernStatus", JSON.stringify(statuses));
+        } catch (e) {
+          console.warn("Speichern im localStorage fehlgeschlagen.", e);
+        }
+      }
+
+      function loadStatus() {
+        try {
+          const storedStatuses = JSON.parse(
+            localStorage.getItem("ipgLernStatus")
+          );
+          if (storedStatuses && storedStatuses.length === questions.length) {
+            questions.forEach((q, i) => {
+              q.status = storedStatuses[i];
+            });
+          }
+        } catch (e) {
+          console.warn("Laden aus localStorage fehlgeschlagen.", e);
+        }
+      }
+
+      /**
+       * Toggles the visibility of the importer container.
+       */
+      function toggleImporter() {
+        importerContainer.classList.toggle("hidden");
+        toggleImporterBtn.textContent = importerContainer.classList.contains(
+          "hidden"
+        )
+          ? "Open Importer"
+          : "Close Importer";
+      }
+
+      // App starten, sobald das DOM geladen ist
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
