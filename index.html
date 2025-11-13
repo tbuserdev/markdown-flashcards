@@ -628,7 +628,6 @@
           url.includes("gist.github.com") &&
           !url.includes("gist.githubusercontent.com")
         ) {
-          // Example: https://gist.github.com/tbuserdev/a094a79d3e9296c8390b8cced7095508
           // Get the gist ID from the URL
           const parts = url.split("/");
           const gistId = parts[parts.length - 1].split("#")[0]; // Remove any fragment
