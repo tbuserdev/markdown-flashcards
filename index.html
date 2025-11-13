@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" class="dark">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,11 +17,11 @@
     />
 
     <style>
-      /* Wendet das Dark Theme standardmässig an */
+      /* Apply dark theme by default */
       html.dark {
         color-scheme: dark;
       }
-      /* Nutzt die "Space Grotesk" Schriftart */
+      /* Use "Space Grotesk" font */
       body {
         font-family: "Space Grotesk", sans-serif;
       }
@@ -307,13 +307,13 @@
             data-filter="all"
             class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
           >
-            Alle (<span id="count-all">0</span>)
+            All (<span id="count-all">0</span>)
           </button>
           <button
             data-filter="unseen"
             class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
           >
-            Übrig (<span id="count-unseen">0</span>)
+            Remaining (<span id="count-unseen">0</span>)
           </button>
           <button
             data-filter="easy"
@@ -340,7 +340,7 @@
             id="question-counter"
             class="text-sm font-normal text-neutral-500 flex items-center"
           >
-            Frage 0 / 0
+            Question 0 / 0
             <span
               class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
               >i</span
@@ -363,13 +363,13 @@
             class="text-lg md:text-xl font-normal text-neutral-100 mb-6"
             id="question-text"
           >
-            Lade Fragen...
+            Loading questions...
           </div>
         </div>
 
         <!-- Antwort (standardmässig versteckt) -->
         <div id="answer-area" class="hidden pt-6 border-t border-neutral-800">
-          <h3 class="text-base font-normal text-neutral-400 mb-4">Antwort</h3>
+          <h3 class="text-base font-normal text-neutral-400 mb-4">Answer</h3>
           <div
             id="answer-text"
             class="text-neutral-300 leading-relaxed text-base"
@@ -395,7 +395,7 @@
           id="show-answer-btn"
           class="py-2 px-5 rounded font-normal bg-neutral-100 hover:bg-white text-neutral-900 transition-colors text-base sm:mb-0 mb-1"
         >
-          Antwort anzeigen <span class="key-hint">␣</span>
+          Show Answer <span class="key-hint">␣</span>
         </button>
 
         <!-- Classification Buttons (shown after answer is revealed) -->
@@ -443,13 +443,13 @@
 
     <!-- JavaScript Logik -->
     <script type="module">
-      // --- App-Status ---
-      let questions = []; // Array für { q: '...', a: '...', status: 'unseen' }
+      // --- App Status ---
+      let questions = []; // Array for { q: '...', a: '...', status: 'unseen' }
       let currentQuestionIndex = 0;
       let currentFilter = "all";
-      let filteredIndices = []; // Hält die Indizes der Fragen, die dem aktuellen Filter entsprechen
+      let filteredIndices = []; // Holds the indices of questions that match the current filter
 
-      // --- DOM-Elemente ---
+      // --- DOM Elements ---
       const questionTextEl = document.getElementById("question-text");
       const answerAreaEl = document.getElementById("answer-area");
       const answerTextEl = document.getElementById("answer-text");
@@ -463,7 +463,7 @@
         "classification-buttons"
       );
 
-      // URL Fetcher Elemente
+      // URL Fetcher Elements
       const urlInput = document.getElementById("md-url-input");
       const fetchBtn = document.getElementById("fetch-md-btn");
       const clearBtn = document.getElementById("clear-storage-btn");
@@ -471,20 +471,20 @@
       const importerContainer = document.getElementById("importer-container");
       const closeImporterBtn = document.getElementById("close-importer-btn");
 
-      // Zähler-Elemente
+      // Counter Elements
       const countAllEl = document.getElementById("count-all");
       const countUnseenEl = document.getElementById("count-unseen");
       const countEasyEl = document.getElementById("count-easy");
       const countMediumEl = document.getElementById("count-medium");
       const countHardEl = document.getElementById("count-hard");
 
-      // --- Initialisierung ---
+      // --- Initialization ---
 
       /**
-       * Initialisiert die gesamte Anwendung. Wird beim Laden der Seite aufgerufen.
+       * Initializes the entire application. Called when the page loads.
        */
       async function init() {
-        // Event Listeners für die Haupt-Lern-UI
+        // Event listeners for the main learning UI
         showAnswerBtn.addEventListener("click", showAnswer);
         nextBtn.addEventListener("click", goToNext);
         prevBtn.addEventListener("click", goToPrev);
@@ -497,7 +497,7 @@
           btn.addEventListener("click", () => applyFilter(btn.dataset.filter));
         });
 
-        // Event Listeners für die neue URL-Fetcher-UI
+        // Event listeners for the new URL fetcher UI
         fetchBtn.addEventListener("click", fetchAndSaveFromUrl);
         clearBtn.addEventListener("click", clearLocalStorageAndReload);
         toggleImporterBtn.addEventListener("click", toggleImporter);
@@ -511,15 +511,15 @@
         const bottomToggleBtn = document.getElementById("bottom-toggle-btn");
         bottomToggleBtn.addEventListener("click", toggleImporter);
 
-        // Tastatur-Steuerung für die Lernkarten
+        // Keyboard controls for flashcards
         document.addEventListener("keydown", (e) => {
-          // Verhindern, dass die Steuerung ausgelöst wird, wenn man im Input-Feld ist
+          // Prevent control from triggering when in input field
           if (document.activeElement === urlInput) return;
 
           if (e.key === "ArrowRight") goToNext();
           if (e.key === "ArrowLeft") goToPrev();
           if (e.key === " ") {
-            e.preventDefault(); // Verhindert Scrollen der Seite
+            e.preventDefault(); // Prevent page scrolling
             showAnswer();
           }
           if (e.key === "1") classifyQuestion("hard");
@@ -527,37 +527,37 @@
           if (e.key === "3") classifyQuestion("easy");
         });
 
-        // Lade den Markdown-Inhalt und starte die App
+        // Load the Markdown content and start the app
         await loadInitialMarkdown();
       }
 
       /**
-       * Lädt den initialen Markdown-Inhalt aus LocalStorage oder lokal.
+       * Loads the initial Markdown content from localStorage or locally.
        */
       async function loadInitialMarkdown() {
         let markdownContent = localStorage.getItem("markdownContent");
         if (!markdownContent) {
-          console.log("Kein Markdown im LocalStorage. Lade lokale 'input.md'.");
+          console.log("No Markdown in localStorage. Loading local 'input.md'.");
           try {
-            // Für lokale Entwicklung: Fetch funktioniert nicht bei file:// Protokoll wegen CORS.
-            // Verwende stattdessen einen lokalen Server (z.B. python -m http.server) oder bette den Inhalt ein.
-            // Als Workaround: Setze einen Platzhalter-Text.
+            // For local development: Fetch does not work with file:// protocol due to CORS.
+            // Use a local server instead (e.g. python -m http.server) or embed the content.
+            // As a workaround: Set a placeholder text.
             markdownContent =
-              "# Platzhalter\n\nFrage 1\n---\nAntwort 1\n\n\nFrage 2\n---\nAntwort 2";
+              "# Placeholder\n\nQuestion 1\n---\nAnswer 1\n\n\nQuestion 2\n---\nAnswer 2";
             console.warn(
-              "Lokales Laden nicht möglich. Verwende Platzhalter-Inhalt."
+              "Local loading not possible. Using placeholder content."
             );
           } catch (error) {
-            console.error("Fehler beim Laden der lokalen 'input.md':", error);
+            console.error("Error loading local 'input.md':", error);
             markdownContent =
-              "# Fehler\n\nKeine Daten gefunden.\n---\nStarte mit leerer App.";
+              "# Error\n\nNo data found.\n---\nStart with empty app.";
           }
         }
         reinitializeWithContent(markdownContent);
       }
 
       /**
-       * Setzt den Zustand der App zurück und initialisiert sie mit neuem Inhalt.
+       * Resets the app state and initializes it with new content.
        */
       function reinitializeWithContent(markdownContent) {
         // Reset state
@@ -568,59 +568,59 @@
 
         // Parse new content
         parseQuestions(markdownContent);
-        loadStatus(); // Lade Status für die (potenziell) neuen Fragen
-        applyFilter("all"); // Starte immer mit dem "all" Filter
+        loadStatus(); // Load status for (potentially) new questions
+        applyFilter("all"); // Always start with the "all" filter
 
-        console.log(`App reinitialisiert. ${questions.length} Fragen geladen.`);
+        console.log(`App reinitialized. ${questions.length} questions loaded.`);
       }
 
       // --- Daten- und Persistenz-Logik ---
 
       /**
-       * Holt Markdown von der eingegebenen URL, speichert es und initialisiert die App neu.
+       * Fetches Markdown from the entered URL, saves it, and reinitializes the app.
        */
       async function fetchAndSaveFromUrl() {
         let url = urlInput.value.trim();
         if (!url) {
-          alert("Bitte eine URL eingeben.");
+          alert("Please enter a URL.");
           return;
         }
 
-        // URL-Transformationen für gängige Dienste
+        // URL transformations for common services
         url = await transformUrl(url);
 
         try {
           const response = await fetch(url);
           if (!response.ok) {
             throw new Error(
-              `Fetch fehlgeschlagen: ${response.status} ${response.statusText}`
+              `Fetch failed: ${response.status} ${response.statusText}`
             );
           }
           const markdownContent = await response.text();
 
-          // Speichere den neuen Inhalt im LocalStorage
+          // Save the new content to localStorage
           localStorage.setItem("markdownContent", markdownContent);
 
-          // Setze auch den Lernstatus zurück, da der Inhalt neu ist
+          // Also reset the learning status since the content is new
           localStorage.removeItem("ipgLernStatus");
 
           alert(
-            "Markdown erfolgreich geladen und gespeichert! Die Seite wird neu initialisiert."
+            "Markdown successfully loaded and saved! The page will be reinitialized."
           );
 
-          // Initialisiere die App mit dem neuen Inhalt
+          // Initialize the app with the new content
           reinitializeWithContent(markdownContent);
         } catch (error) {
-          console.error("Fehler beim Fetchen der URL:", error);
+          console.error("Error fetching URL:", error);
           alert(
-            `Fehler beim Laden der URL. Prüfe die URL und die Browser-Konsole für Details. \n\nFehler: ${error.message}`
+            `Error loading URL. Check the URL and browser console for details. \n\nError: ${error.message}`
           );
         }
       }
 
       /**
-       * Transformiert eine gegebene URL in eine direkte "raw" Content-URL.
-       * Unterstützt GitHub, GitLab, OneDrive, Google Drive und GitHub Gist.
+       * Transforms a given URL into a direct "raw" content URL.
+       * Supports GitHub, GitLab, OneDrive, Google Drive, and GitHub Gist.
        */
       async function transformUrl(url) {
         // GitHub Gist (handle first before generic GitHub)
@@ -696,33 +696,33 @@
       }
 
       /**
-       * Löscht alle relevanten Daten aus dem LocalStorage und lädt die Seite neu.
+       * Deletes all relevant data from localStorage and reloads the page.
        */
       function clearLocalStorageAndReload() {
         if (
           confirm(
-            "Willst du wirklich alle gespeicherten Daten (Markdown und Lernfortschritt) löschen?"
+            "Do you really want to delete all stored data (Markdown and learning progress)?"
           )
         ) {
           localStorage.removeItem("markdownContent");
           localStorage.removeItem("ipgLernStatus");
           alert(
-            "Alle Daten gelöscht. Die Seite wird mit den Standard-Fragen neu geladen."
+            "All data deleted. The page will reload with default questions."
           );
           location.reload();
         }
       }
 
       /**
-       * Parst den Markdown-Inhalt in ein Fragen-Array.
+       * Parses the Markdown content into a questions array.
        */
       function parseQuestions(markdownContent) {
         if (!markdownContent) return;
-        // Splittet den Text in Q/A-Paare. Jedes Paar ist durch \n\n\n getrennt.
+        // Splits the text into Q/A pairs. Each pair is separated by \n\n\n.
         const entries = markdownContent.trim().split(/\n\s*\n\s*\n/);
 
         for (const entry of entries) {
-          // Jedes Paar wird durch \n---\n in Frage und Antwort geteilt.
+          // Each pair is split by \n---\n into question and answer.
           const parts = entry.trim().split("\n---\n");
           if (parts.length === 2) {
             questions.push({
@@ -734,16 +734,16 @@
         }
       }
 
-      // --- UI-Logik ---
+      // --- UI Logic ---
 
       /**
-       * Zeigt eine spezifische Frage basierend auf dem globalen Index an.
+       * Displays a specific question based on the global index.
        */
       function displayQuestion(index) {
         if (index < 0 || index >= questions.length) {
-          // Fallback, falls keine Fragen da sind
+          // Fallback if no questions exist
           questionTextEl.textContent =
-            "Keine Fragen gefunden. Lade eine Markdown-Datei.";
+            "No questions found. Load a Markdown file.";
           answerTextEl.textContent = "";
           answerAreaEl.classList.add("hidden");
           questionCounterEl.textContent = "0 / 0";
@@ -765,7 +765,7 @@
       }
 
       /**
-       * Zeigt die Antwort für die aktuelle Frage an.
+       * Shows the answer for the current question.
        */
       function showAnswer() {
         if (questions.length === 0) return;
@@ -775,7 +775,7 @@
       }
 
       /**
-       * Weist der aktuellen Frage einen Status zu und speichert.
+       * Assigns a status to the current question and saves it.
        */
       function classifyQuestion(status) {
         if (questions.length === 0) return;
@@ -788,7 +788,7 @@
       }
 
       /**
-       * Wendet einen Filter auf die Fragenliste an.
+       * Applies a filter to the question list.
        */
       function applyFilter(filter) {
         currentFilter = filter;
@@ -802,7 +802,7 @@
             .map((q) => q.index);
         }
 
-        // Update Filter-Button-Styling
+        // Update Filter Button Styling
         filterButtons.forEach((btn) => {
           const isActive = btn.dataset.filter === filter;
 
@@ -835,8 +835,7 @@
         if (filteredIndices.length > 0) {
           displayQuestion(filteredIndices[0]);
         } else {
-          questionTextEl.textContent =
-            "Keine Fragen in diesem Filter gefunden.";
+          questionTextEl.textContent = "No questions found in this filter.";
           answerTextEl.textContent = "";
           answerAreaEl.classList.add("hidden");
           questionCounterEl.textContent = "0 / 0";
@@ -847,7 +846,7 @@
       }
 
       /**
-       * Geht zur nächsten Frage im aktuellen Filter.
+       * Goes to the next question in the current filter.
        */
       function goToNext() {
         const currentFilteredIndex =
@@ -858,7 +857,7 @@
       }
 
       /**
-       * Geht zur vorherigen Frage im aktuellen Filter.
+       * Goes to the previous question in the current filter.
        */
       function goToPrev() {
         const currentFilteredIndex =
@@ -868,14 +867,14 @@
         }
       }
 
-      // --- UI-Update-Funktionen ---
+      // --- UI Update Functions ---
 
       function updateQuestionCounter() {
         const currentFilteredIndex =
           filteredIndices.indexOf(currentQuestionIndex);
-        questionCounterEl.textContent = `Frage ${currentFilteredIndex + 1} / ${
-          filteredIndices.length
-        }`;
+        questionCounterEl.textContent = `Question ${
+          currentFilteredIndex + 1
+        } / ${filteredIndices.length}`;
       }
 
       function updateNavButtonStates() {
@@ -911,14 +910,14 @@
         countHardEl.textContent = counts.hard;
       }
 
-      // --- Persistenz (Speichern & Laden des Lernfortschritts) ---
+      // --- Persistence (Save & Load Learning Progress) ---
 
       function saveStatus() {
         const statuses = questions.map((q) => q.status);
         try {
           localStorage.setItem("ipgLernStatus", JSON.stringify(statuses));
         } catch (e) {
-          console.warn("Speichern im localStorage fehlgeschlagen.", e);
+          console.warn("Saving to localStorage failed.", e);
         }
       }
 
@@ -933,7 +932,7 @@
             });
           }
         } catch (e) {
-          console.warn("Laden aus localStorage fehlgeschlagen.", e);
+          console.warn("Loading from localStorage failed.", e);
         }
       }
 
@@ -949,7 +948,7 @@
           : "Close Importer";
       }
 
-      // App starten, sobald das DOM geladen ist
+      // Start app when DOM is loaded
       document.addEventListener("DOMContentLoaded", init);
     </script>
   </body>
