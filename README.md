@@ -41,6 +41,14 @@ Answer 2
 
 Use Markdown formatting within questions and answers for enhanced readability.
 
+## Hosting your Flashcards with GitHub Gists
+
+You can host your flashcards using GitHub Gists for easy access. Here's how:
+1. Go to [GitHub Gists](https://gist.github.com/).
+2. Create a new gist and paste your flashcards in the Markdown format described above.
+3. Save the gist and copy the URL.
+4. Use this URL in the app to load your flashcards.
+
 ## Development
 
 This app is built with vanilla HTML, CSS, and JavaScript. It uses:
