@@ -28,6 +28,10 @@ export function initFilter() {
 
 
 export function applyFilter(filter: string) {
+  const allowedFilters = ["all", "unseen", "easy", "medium", "hard"];
+  if (!allowedFilters.includes(filter)) {
+    filter = "all";
+  }
   setCurrentFilter(filter);
 
   let newFilteredIndices: number[];
