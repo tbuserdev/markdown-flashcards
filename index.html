@@ -363,6 +363,12 @@
           >
             Open Importer
           </button>
+          <button
+            id="share-deck-btn"
+            class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+          >
+            Share
+           </button>
         </div>
       </div>
 
@@ -481,6 +487,7 @@
       const toggleImporterBtn = document.getElementById("toggle-importer-btn");
       const importerContainer = document.getElementById("importer-container");
       const closeImporterBtn = document.getElementById("close-importer-btn");
+      const shareDeckBtn = document.getElementById("share-deck-btn");
 
       // Counter Elements
       const countAllEl = document.getElementById("count-all");
@@ -512,6 +519,7 @@
         fetchBtn.addEventListener("click", fetchAndSaveFromUrl);
         clearBtn.addEventListener("click", clearLocalStorageAndReload);
         toggleImporterBtn.addEventListener("click", toggleImporter);
+        shareDeckBtn.addEventListener("click", handleShareClick);
         toggleImporterBtn.textContent = "Open Importer"; // Initial text since importer is hidden
         closeImporterBtn.addEventListener("click", toggleImporter);
         urlInput.addEventListener("keydown", (e) => {
@@ -546,6 +554,31 @@
        * Loads the initial Markdown content from localStorage or locally.
        */
       async function loadInitialMarkdown() {
+        const urlParams = new URL(location.href).searchParams;
+        const preloadUrl = urlParams.get("preload");
+
+        if (preloadUrl) {
+          try {
+            const transformedUrl = await transformUrl(preloadUrl);
+            const response = await fetch(transformedUrl);
+            if (!response.ok)
+              throw new Error(`Fetch failed: ${response.status}`);
+            const markdownContent = await response.text();
+
+            localStorage.setItem("markdownContent", markdownContent);
+            localStorage.setItem("lastSourceUrl", preloadUrl);
+            localStorage.removeItem("ipgLernStatus"); // Reset progress
+
+            reinitializeWithContent(markdownContent);
+            history.replaceState(null, "", location.pathname); // Clean URL
+            return;
+          } catch (error) {
+            alert(
+              `Failed to preload from URL: ${preloadUrl}\nError: ${error.message}\n\nFalling back to local data.`
+            );
+          }
+        }
+
         let markdownContent = localStorage.getItem("markdownContent");
         if (!markdownContent) {
           console.log("No Markdown in localStorage. Loading local 'input.md'.");
@@ -596,6 +629,7 @@
           alert("Please enter a URL.");
           return;
         }
+        const sourceUrl = url;
 
         // URL transformations for common services
         url = await transformUrl(url);
@@ -611,6 +645,7 @@
 
           // Save the new content to localStorage
           localStorage.setItem("markdownContent", markdownContent);
+          localStorage.setItem("lastSourceUrl", sourceUrl);
 
           // Also reset the learning status since the content is new
           localStorage.removeItem("ipgLernStatus");
@@ -716,10 +751,72 @@
         ) {
           localStorage.removeItem("markdownContent");
           localStorage.removeItem("ipgLernStatus");
+          localStorage.removeItem("lastSourceUrl");
           alert(
             "All data deleted. The page will reload with default questions."
           );
           location.reload();
+        }
+      }
+
+      /**
+       * Handles the click event for the 'Share' button.
+       */
+      function handleShareClick() {
+        const lastSourceUrl = localStorage.getItem("lastSourceUrl");
+        if (!lastSourceUrl) {
+          alert(
+            "No source URL to share. Load a deck from a URL first."
+          );
+          return;
+        }
+        const shareUrl = generateShareUrl(lastSourceUrl);
+        copyToClipboard(shareUrl);
+      }
+
+      /**
+       * Generates a shareable URL with the source URL as a query parameter.
+       */
+      function generateShareUrl(sourceUrl) {
+        const url = new URL(location.href);
+        url.searchParams.set("preload", sourceUrl);
+        return url.href;
+      }
+
+      /**
+       * Copies text to the clipboard, with a fallback for older browsers.
+       */
+      function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => alert("Shareable URL copied to clipboard!"))
+            .catch((err) => {
+              console.error("Failed to copy with navigator.clipboard:", err);
+              // Fallback if clipboard permission is denied
+              prompt("Could not copy automatically. Please copy this URL manually:", text);
+            });
+        } else {
+          // Fallback for browsers without navigator.clipboard
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed"; // Avoid scrolling to bottom
+          textArea.style.opacity = 0;
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            const successful = document.execCommand("copy");
+            if (successful) {
+              alert("Shareable URL copied to clipboard!");
+            } else {
+              prompt("Fallback copy failed. Please copy this URL manually:", text);
+            }
+          } catch (err) {
+            console.error("Fallback copy failed:", err);
+            prompt("Could not copy automatically. Please copy this URL manually:", text);
+          }
+          document.body.removeChild(textArea);
         }
       }
 
