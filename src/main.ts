@@ -4,15 +4,22 @@ import {
   setCurrentFilter,
   filteredIndices,
   currentQuestionIndex,
-  FlashcardStatus,
 } from "./lib/state";
+import type { FlashcardStatus } from "./lib/state";
 import { loadStatus, clearLocalStorageAndReload } from "./lib/storage";
 import { transformUrl, handleShareClick } from "./lib/url";
 import { parseQuestions } from "./lib/markdown";
-import { initFlashcard, displayQuestion, showAnswer } from "./components/flashcard";
+import {
+  initFlashcard,
+  displayQuestion,
+  showAnswer,
+} from "./components/flashcard";
 import { initNavigation, updateNavButtonStates } from "./components/navigation";
 import { initImporter, toggleImporter } from "./components/importer";
-import { initClassification, classifyQuestion } from "./components/classification";
+import {
+  initClassification,
+  classifyQuestion,
+} from "./components/classification";
 import { initFilter, applyFilter } from "./components/filter";
 
 let classifyButtons: NodeListOf<Element>;
@@ -31,10 +38,16 @@ async function init() {
   urlInput = document.getElementById("md-url-input") as HTMLInputElement;
   fetchBtn = document.getElementById("fetch-md-btn") as HTMLButtonElement;
   clearBtn = document.getElementById("clear-storage-btn") as HTMLButtonElement;
-  toggleImporterBtn = document.getElementById("toggle-importer-btn") as HTMLButtonElement;
-  closeImporterBtn = document.getElementById("close-importer-btn") as HTMLButtonElement;
+  toggleImporterBtn = document.getElementById(
+    "toggle-importer-btn"
+  ) as HTMLButtonElement;
+  closeImporterBtn = document.getElementById(
+    "close-importer-btn"
+  ) as HTMLButtonElement;
   shareDeckBtn = document.getElementById("share-deck-btn") as HTMLButtonElement;
-  bottomToggleBtn = document.getElementById("bottom-toggle-btn") as HTMLButtonElement;
+  bottomToggleBtn = document.getElementById(
+    "bottom-toggle-btn"
+  ) as HTMLButtonElement;
 
   initFlashcard();
   initNavigation();
@@ -42,12 +55,17 @@ async function init() {
   initClassification();
   initFilter();
 
-  document.getElementById("show-answer-btn")?.addEventListener("click", showAnswer);
+  document
+    .getElementById("show-answer-btn")
+    ?.addEventListener("click", showAnswer);
   document.getElementById("next-btn")?.addEventListener("click", goToNext);
   document.getElementById("prev-btn")?.addEventListener("click", goToPrev);
   classifyButtons.forEach((btn) => {
     btn.addEventListener("click", () =>
-      classifyQuestion((btn as HTMLElement).dataset.status as FlashcardStatus, goToNext)
+      classifyQuestion(
+        (btn as HTMLElement).dataset.status as FlashcardStatus,
+        goToNext
+      )
     );
   });
   filterButtons.forEach((btn) => {
@@ -95,8 +113,7 @@ async function loadInitialMarkdown() {
     try {
       const transformedUrl = await transformUrl(preloadUrl);
       const response = await fetch(transformedUrl);
-      if (!response.ok)
-        throw new Error(`Fetch failed: ${response.status}`);
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
       const markdownContent = await response.text();
 
       localStorage.setItem("markdownContent", markdownContent);
@@ -119,13 +136,10 @@ async function loadInitialMarkdown() {
     try {
       markdownContent =
         "# Markdown Flashcards Trainer - Quickstart Guide\n\nWelcome to the Markdown Flashcards Trainer!\n---\nThis app helps you study flashcards created from Markdown files. Each flashcard has a question and an answer, separated by '---'. Questions are grouped by triple newlines.\n\n\nWhat is a flashcard in this app?\n---\nA flashcard consists of a question and an answer. The question appears first. Click 'Show Answer' or press Space to reveal the answer. Then classify it as Easy, Medium, or Hard.\n\n\nHow do I load my own flashcards?\n---\nClick the '^' button at the bottom or 'Open Importer' in the top-right. Enter a URL to a Markdown file from GitHub, GitLab, OneDrive, Google Drive, or a Gist. Click 'LOAD' to fetch and save it.\n\n\nHow do I navigate between flashcards?\n---\nUse the ← and → buttons, or press the Left/Right arrow keys on your keyboard. The counter shows your current position (e.g., Question 3 / 10).\n\n\nHow do I classify flashcards?\n---\nAfter revealing the answer, choose Easy (3), Medium (2), or Hard (1) using the buttons or number keys. This tracks your progress and helps with filtering.\n\n\nWhat do the filters do?\n---\nUse the filter buttons at the top: 'All' shows everything, 'Remaining' shows unseen cards, and the others show cards you've classified as Easy/Medium/Hard. Switch filters to focus your study.\n\n\nWhat are the keyboard shortcuts?\n---\n- Space: Show answer\n- 1: Hard\n- 2: Medium\n- 3: Easy\n- ←: Previous card\n- →: Next card\n\n\nHow do I reset my progress?\n---\nIn the importer (bottom panel), click 'DELETE ALL' to clear saved flashcards and progress. This reloads the page with default content.\n\n\nCan I use local files?\n---\nFor local development, use a local server (e.g., `python -m http.server`) to serve your Markdown file, then enter the localhost URL in the importer.\n\n\nWhat format should my Markdown be?\n---\nWrite questions and answers like this:\n\nQuestion 1\n---\nAnswer 1\n\n\nQuestion 2\n---\nAnswer 2\n\nUse Markdown formatting (bold, italic, lists, code) in questions and answers.\n\n\nHow does progress saving work?\n---\nYour classifications are saved in your browser's localStorage. They persist between sessions but are cleared when you load new content or delete all data.";
-      console.warn(
-        "Local loading not possible. Using quickstart content."
-      );
+      console.warn("Local loading not possible. Using quickstart content.");
     } catch (error) {
       console.error("Error loading local 'input.md':", error);
-      markdownContent =
-        "# Error\n\nNo data found.\n---\nStart with empty app.";
+      markdownContent = "# Error\n\nNo data found.\n---\nStart with empty app.";
     }
   }
   reinitializeWithContent(markdownContent);
@@ -180,16 +194,14 @@ async function fetchAndSaveFromUrl() {
 }
 
 function goToNext() {
-  const currentFilteredIndex =
-    filteredIndices.indexOf(currentQuestionIndex);
+  const currentFilteredIndex = filteredIndices.indexOf(currentQuestionIndex);
   if (currentFilteredIndex < filteredIndices.length - 1) {
     displayQuestion(filteredIndices[currentFilteredIndex + 1]);
   }
 }
 
 function goToPrev() {
-  const currentFilteredIndex =
-    filteredIndices.indexOf(currentQuestionIndex);
+  const currentFilteredIndex = filteredIndices.indexOf(currentQuestionIndex);
   if (currentFilteredIndex > 0) {
     displayQuestion(filteredIndices[currentFilteredIndex - 1]);
   }

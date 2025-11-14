@@ -1,4 +1,5 @@
-import { questions, currentQuestionIndex, FlashcardStatus } from "../lib/state";
+import { questions, currentQuestionIndex } from "../lib/state";
+import type { FlashcardStatus } from "../lib/state";
 import { saveStatus } from "../lib/storage";
 import { showAnswer } from "./flashcard";
 
@@ -9,14 +10,17 @@ let countMediumEl: HTMLElement;
 let countHardEl: HTMLElement;
 
 export function initClassification() {
-    countAllEl = document.getElementById("count-all") as HTMLElement;
-    countUnseenEl = document.getElementById("count-unseen") as HTMLElement;
-    countEasyEl = document.getElementById("count-easy") as HTMLElement;
-    countMediumEl = document.getElementById("count-medium") as HTMLElement;
-    countHardEl = document.getElementById("count-hard") as HTMLElement;
+  countAllEl = document.getElementById("count-all") as HTMLElement;
+  countUnseenEl = document.getElementById("count-unseen") as HTMLElement;
+  countEasyEl = document.getElementById("count-easy") as HTMLElement;
+  countMediumEl = document.getElementById("count-medium") as HTMLElement;
+  countHardEl = document.getElementById("count-hard") as HTMLElement;
 }
 
-export function classifyQuestion(status: FlashcardStatus, goToNext: () => void) {
+export function classifyQuestion(
+  status: FlashcardStatus,
+  goToNext: () => void
+) {
   if (questions.length === 0) return;
   questions[currentQuestionIndex].status = status;
   showAnswer();

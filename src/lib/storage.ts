@@ -1,4 +1,5 @@
-import { questions, Flashcard, FlashcardStatus } from "./state";
+import { questions } from "./state";
+import type { Flashcard, FlashcardStatus } from "./state";
 
 export function saveStatus() {
   const statuses = questions.map((q: Flashcard) => q.status);
@@ -33,9 +34,7 @@ export function clearLocalStorageAndReload() {
     localStorage.removeItem("markdownContent");
     localStorage.removeItem("ipgLernStatus");
     localStorage.removeItem("lastSourceUrl");
-    alert(
-      "All data deleted. The page will reload with default questions."
-    );
+    alert("All data deleted. The page will reload with default questions.");
     location.reload();
   }
 }

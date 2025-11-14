@@ -1,4 +1,4 @@
-import { questions, Flashcard } from "./state";
+import { questions } from "./state";
 
 export function parseQuestions(markdownContent: string) {
   if (!markdownContent) return;
