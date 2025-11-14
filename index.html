@@ -344,6 +344,12 @@
           >
             Hard (<span id="count-hard">0</span>)
           </button>
+          <button
+            id="shuffle-btn"
+            class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+          >
+            Shuffle
+          </button>
         </div>
         <!-- Navigations-Zähler und Importer Button -->
         <div class="flex items-center gap-4">
@@ -479,6 +485,7 @@
       const classificationButtonsContainer = document.getElementById(
         "classification-buttons"
       );
+      const shuffleBtn = document.getElementById("shuffle-btn");
 
       // URL Fetcher Elements
       const urlInput = document.getElementById("md-url-input");
@@ -513,6 +520,9 @@
         });
         filterButtons.forEach((btn) => {
           btn.addEventListener("click", () => applyFilter(btn.dataset.filter));
+        });
+        shuffleBtn.addEventListener("click", () => {
+          applyFilter(currentFilter, true);
         });
 
         // Event listeners for the new URL fetcher UI
@@ -904,7 +914,7 @@
       /**
        * Applies a filter to the question list.
        */
-      function applyFilter(filter) {
+      function applyFilter(filter, shuffle = false) {
         currentFilter = filter;
 
         if (filter === "all") {
@@ -914,6 +924,17 @@
             .map((q, i) => ({ status: q.status, index: i }))
             .filter((q) => q.status === filter)
             .map((q) => q.index);
+        }
+
+        if (shuffle) {
+          // Fisher-Yates shuffle algorithm
+          for (let i = filteredIndices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [filteredIndices[i], filteredIndices[j]] = [
+              filteredIndices[j],
+              filteredIndices[i],
+            ];
+          }
         }
 
         // Update Filter Button Styling
