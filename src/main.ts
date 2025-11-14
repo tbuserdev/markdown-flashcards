@@ -14,7 +14,7 @@ import {
   displayQuestion,
   showAnswer,
 } from "./components/flashcard";
-import { initNavigation, updateNavButtonStates } from "./components/navigation";
+import { initNavigation } from "./components/navigation";
 import { initImporter, toggleImporter } from "./components/importer";
 import {
   initClassification,
