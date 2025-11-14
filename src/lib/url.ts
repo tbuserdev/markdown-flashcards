@@ -12,11 +12,15 @@ export async function transformUrl(url: string): Promise<string> {
       );
       if (apiResponse.ok) {
         const gistData = await apiResponse.json();
-        const files = Object.values(gistData.files);
+        interface GistFile {
+          filename: string;
+          raw_url: string;
+        }
+        const files: GistFile[] = Object.values(gistData.files);
         const mdFile =
-          files.find((f: any) => f.filename.endsWith(".md")) || files[0];
-        if (mdFile && (mdFile as any).raw_url) {
-          return (mdFile as any).raw_url;
+          files.find((f: GistFile) => f.filename.endsWith(".md")) || files[0];
+        if (mdFile && mdFile.raw_url) {
+          return mdFile.raw_url;
         }
       }
     } catch (error) {
