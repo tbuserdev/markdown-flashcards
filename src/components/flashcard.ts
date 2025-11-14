@@ -7,12 +7,12 @@ import {
 import type { Flashcard } from "../lib/state";
 import { updateNavButtonStates } from "./navigation";
 
-declare const marked: any;
+declare const marked: { parse: (markdown: string) => string };
 
-let questionTextEl: HTMLElement;
-let answerAreaEl: HTMLElement;
-let answerTextEl: HTMLElement;
-let questionCounterEl: HTMLElement;
+export let questionTextEl: HTMLElement;
+export let answerAreaEl: HTMLElement;
+export let answerTextEl: HTMLElement;
+export let questionCounterEl: HTMLElement;
 let showAnswerBtn: HTMLButtonElement;
 let classificationButtonsContainer: HTMLElement;
 
