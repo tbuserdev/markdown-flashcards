@@ -2,9 +2,12 @@
   "name": "flashcard-trainer",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
+    "typescript": "^5.9.3",
     "vite": "^7.2.2"
   }
 }
