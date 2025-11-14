@@ -12,9 +12,9 @@ export function saveStatus() {
 
 export function loadStatus() {
   try {
-    const storedStatuses = JSON.parse(
-      localStorage.getItem("ipgLernStatus") as string
-    ) as FlashcardStatus[];
+    const item = localStorage.getItem("ipgLernStatus");
+    if (!item) return;
+    const storedStatuses = JSON.parse(item) as FlashcardStatus[];
     if (storedStatuses && storedStatuses.length === questions.length) {
       questions.forEach((q: Flashcard, i: number) => {
         q.status = storedStatuses[i];
