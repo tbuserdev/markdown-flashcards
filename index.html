@@ -21,12 +21,6 @@
       async
       src="https://scripts.simpleanalyticscdn.com/latest.js"
     ></script>
-    <noscript
-      ><img
-        src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true"
-        alt=""
-        referrerpolicy="no-referrer-when-downgrade"
-    /></noscript>
     <style>
       /* Apply dark theme by default */
       html.dark {
@@ -261,6 +255,12 @@
   <body
     class="bg-neutral-950 text-neutral-400 flex flex-col items-center justify-center min-h-screen p-4 md:p-8 pb-20 selection:bg-neutral-700 selection:text-white"
   >
+    <noscript
+      ><img
+        src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true"
+        alt=""
+        referrerpolicy="no-referrer-when-downgrade"
+    /></noscript>
     <!-- URL Fetcher -->
     <div
       class="fixed bottom-0 left-0 right-0 bg-neutral-950 p-4 border-t border-neutral-800 hidden"
@@ -368,7 +368,7 @@
             class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
           >
             Share
-           </button>
+          </button>
         </div>
       </div>
 
@@ -765,9 +765,7 @@
       function handleShareClick() {
         const lastSourceUrl = localStorage.getItem("lastSourceUrl");
         if (!lastSourceUrl) {
-          alert(
-            "No source URL to share. Load a deck from a URL first."
-          );
+          alert("No source URL to share. Load a deck from a URL first.");
           return;
         }
         const shareUrl = generateShareUrl(lastSourceUrl);
@@ -794,7 +792,10 @@
             .catch((err) => {
               console.error("Failed to copy with navigator.clipboard:", err);
               // Fallback if clipboard permission is denied
-              prompt("Could not copy automatically. Please copy this URL manually:", text);
+              prompt(
+                "Could not copy automatically. Please copy this URL manually:",
+                text
+              );
             });
         } else {
           // Fallback for browsers without navigator.clipboard
@@ -810,11 +811,17 @@
             if (successful) {
               alert("Shareable URL copied to clipboard!");
             } else {
-              prompt("Fallback copy failed. Please copy this URL manually:", text);
+              prompt(
+                "Fallback copy failed. Please copy this URL manually:",
+                text
+              );
             }
           } catch (err) {
             console.error("Fallback copy failed:", err);
-            prompt("Could not copy automatically. Please copy this URL manually:", text);
+            prompt(
+              "Could not copy automatically. Please copy this URL manually:",
+              text
+            );
           }
           document.body.removeChild(textArea);
         }
