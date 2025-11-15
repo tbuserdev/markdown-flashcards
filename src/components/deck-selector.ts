@@ -1,6 +1,7 @@
 import { decks, activeDeckId } from "../lib/state";
 
 let deckSelector: HTMLSelectElement;
+let currentHandler: ((e: Event) => void) | null = null;
 
 export function initDeckSelector(onDeckSelect: (deckId: string) => void) {
   deckSelector = document.getElementById(
@@ -8,6 +9,10 @@ export function initDeckSelector(onDeckSelect: (deckId: string) => void) {
   ) as HTMLSelectElement;
 
   if (deckSelector) {
+    if (currentHandler) {
+      deckSelector.removeEventListener("change", currentHandler);
+    }
+
     deckSelector.innerHTML = "";
     decks.forEach((deck) => {
       const option = document.createElement("option");
@@ -19,9 +24,10 @@ export function initDeckSelector(onDeckSelect: (deckId: string) => void) {
       deckSelector.appendChild(option);
     });
 
-    deckSelector.addEventListener("change", (e) => {
+    currentHandler = (e) => {
       const selectedDeckId = (e.target as HTMLSelectElement).value;
       onDeckSelect(selectedDeckId);
-    });
+    };
+    deckSelector.addEventListener("change", currentHandler);
   }
 }
