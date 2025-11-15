@@ -75,7 +75,7 @@ export function migrateToMultiDeckStorage() {
       } catch (e) {
         console.warn(
           "Failed to parse old status, using 'unseen' for all cards",
-          e
+          e,
         );
       }
     }
@@ -99,7 +99,7 @@ export function migrateToMultiDeckStorage() {
 export function clearLocalStorageAndReload() {
   if (
     confirm(
-      "Do you really want to delete all stored data (decks and learning progress)?"
+      "Do you really want to delete all stored data (decks and learning progress)?",
     )
   ) {
     localStorage.removeItem("decks");

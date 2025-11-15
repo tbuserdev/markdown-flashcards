@@ -53,14 +53,14 @@ async function init() {
   fetchBtn = document.getElementById("fetch-md-btn") as HTMLButtonElement;
   clearBtn = document.getElementById("clear-storage-btn") as HTMLButtonElement;
   toggleImporterBtn = document.getElementById(
-    "toggle-importer-btn"
+    "toggle-importer-btn",
   ) as HTMLButtonElement;
   closeImporterBtn = document.getElementById(
-    "close-importer-btn"
+    "close-importer-btn",
   ) as HTMLButtonElement;
   shareDeckBtn = document.getElementById("share-deck-btn") as HTMLButtonElement;
   bottomToggleBtn = document.getElementById(
-    "bottom-toggle-btn"
+    "bottom-toggle-btn",
   ) as HTMLButtonElement;
 
   initFlashcard();
@@ -78,13 +78,13 @@ async function init() {
     btn.addEventListener("click", () =>
       classifyQuestion(
         (btn as HTMLElement).dataset.status as FlashcardStatus,
-        goToNext
-      )
+        goToNext,
+      ),
     );
   });
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () =>
-      applyFilter((btn as HTMLElement).dataset.filter as string)
+      applyFilter((btn as HTMLElement).dataset.filter as string),
     );
   });
 
@@ -132,9 +132,10 @@ async function loadInitialDecks() {
       await createDeckFromUrl(preloadUrl, true);
       history.replaceState(null, "", location.pathname);
       return;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       alert(
-        `Failed to preload from URL: ${preloadUrl}\nError: ${error.message}\n\nFalling back to local data.`
+        `Failed to preload from URL: ${preloadUrl}\nError: ${errMsg}\n\nFalling back to local data.`,
       );
     }
   }
@@ -179,7 +180,7 @@ function updateDeckSelector() {
   initDeckSelector(setActiveDeck);
 }
 
-function reinitializeWithContent(newQuestions: any[]) {
+function reinitializeWithContent(newQuestions: Deck["questions"]) {
   questions.length = 0;
   Array.prototype.push.apply(questions, newQuestions);
   setCurrentQuestionIndex(0);
@@ -190,17 +191,18 @@ function reinitializeWithContent(newQuestions: any[]) {
 }
 
 async function fetchAndCreateDeckFromUrl() {
-  let url = urlInput.value.trim();
+  const url = urlInput.value.trim();
   if (!url) {
     alert("Please enter a URL.");
     return;
   }
   try {
     await createDeckFromUrl(url, false);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching URL:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     alert(
-      `Error loading URL. Check the URL and browser console for details. \n\nError: ${error.message}`
+      `Error loading URL. Check the URL and browser console for details. \n\nError: ${errMsg}`,
     );
   }
 }
@@ -219,7 +221,7 @@ async function createDeckFromUrl(url: string, isPreload: boolean) {
   if (isPreload) {
     const autoName = `Loaded from ${new URL(sourceUrl).hostname}`;
     const confirmPreload = confirm(
-      `Do you want to create a deck named "${autoName}" from ${sourceUrl}?`
+      `Do you want to create a deck named "${autoName}" from ${sourceUrl}?`,
     );
     if (!confirmPreload) {
       alert("Preloaded deck creation cancelled");
@@ -229,7 +231,7 @@ async function createDeckFromUrl(url: string, isPreload: boolean) {
   } else {
     deckName = prompt(
       `Enter a name for this deck:`,
-      `Deck from ${new URL(sourceUrl).hostname}`
+      `Deck from ${new URL(sourceUrl).hostname}`,
     );
     if (deckName === null) {
       alert("Deck creation cancelled");
@@ -241,7 +243,7 @@ async function createDeckFromUrl(url: string, isPreload: boolean) {
     const nameExists = decks.some((deck) => deck.name === deckName);
     if (nameExists && !isPreload) {
       const tryAgain = !window.confirm(
-        `A deck named "${deckName}" already exists. Do you want to continue and create another deck with the same name?`
+        `A deck named "${deckName}" already exists. Do you want to continue and create another deck with the same name?`,
       );
       if (tryAgain) {
         alert("Please choose a different deck name.");
@@ -253,7 +255,7 @@ async function createDeckFromUrl(url: string, isPreload: boolean) {
     if (urlDeckIndex !== -1 && !isPreload) {
       const action = window.prompt(
         `A deck from this URL already exists ("${decks[urlDeckIndex].name}").nType "replace" to overwrite, "keep" to add anyway, or "cancel" to abort.`,
-        "cancel"
+        "cancel",
       );
       if (action === null || action.toLowerCase() === "cancel") {
         alert("Deck loading cancelled.");

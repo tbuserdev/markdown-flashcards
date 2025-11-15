@@ -19,7 +19,7 @@ export function initClassification() {
 
 export function classifyQuestion(
   status: FlashcardStatus,
-  goToNext: () => void
+  goToNext: () => void,
 ) {
   if (questions.length === 0) return;
   questions[currentQuestionIndex].status = status;
@@ -30,7 +30,7 @@ export function classifyQuestion(
 }
 
 export function updateSummaryCounts() {
-  let counts = {
+  const counts = {
     all: questions.length,
     unseen: 0,
     easy: 0,

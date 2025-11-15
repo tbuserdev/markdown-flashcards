@@ -4,9 +4,7 @@ let deckSelector: HTMLSelectElement;
 let currentHandler: ((e: Event) => void) | null = null;
 
 export function initDeckSelector(onDeckSelect: (deckId: string) => void) {
-  deckSelector = document.getElementById(
-    "deck-selector"
-  ) as HTMLSelectElement;
+  deckSelector = document.getElementById("deck-selector") as HTMLSelectElement;
 
   if (deckSelector) {
     if (currentHandler) {

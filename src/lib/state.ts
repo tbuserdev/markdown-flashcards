@@ -16,10 +16,10 @@ export interface Deck {
   questions: Flashcard[];
 }
 
-export let questions: Flashcard[] = [];
+export const questions: Flashcard[] = [];
 export let currentQuestionIndex: number = 0;
 export let currentFilter: string = "all";
-export let filteredIndices: number[] = [];
+export const filteredIndices: number[] = [];
 export let decks: Deck[] = [];
 export let activeDeckId: string | null = null;
 

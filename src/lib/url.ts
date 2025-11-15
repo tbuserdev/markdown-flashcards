@@ -7,9 +7,7 @@ export async function transformUrl(url: string): Promise<string> {
     const gistId = parts[parts.length - 1].split("#")[0];
 
     try {
-      const apiResponse = await fetch(
-        `https://api.github.com/gists/${gistId}`
-      );
+      const apiResponse = await fetch(`https://api.github.com/gists/${gistId}`);
       if (apiResponse.ok) {
         const gistData = await apiResponse.json();
         interface GistFile {
@@ -26,7 +24,7 @@ export async function transformUrl(url: string): Promise<string> {
     } catch (error) {
       console.warn(
         "Could not fetch gist API, falling back to default raw URL:",
-        error
+        error,
       );
     }
 
@@ -90,7 +88,7 @@ function copyToClipboard(text: string) {
         console.error("Failed to copy with navigator.clipboard:", err);
         prompt(
           "Could not copy automatically. Please copy this URL manually:",
-          text
+          text,
         );
       });
   } else {
@@ -106,16 +104,13 @@ function copyToClipboard(text: string) {
       if (successful) {
         alert("Shareable URL copied to clipboard!");
       } else {
-        prompt(
-          "Fallback copy failed. Please copy this URL manually:",
-          text
-        );
+        prompt("Fallback copy failed. Please copy this URL manually:", text);
       }
     } catch (err) {
       console.error("Fallback copy failed:", err);
       prompt(
         "Could not copy automatically. Please copy this URL manually:",
-        text
+        text,
       );
     }
     document.body.removeChild(textArea);
