@@ -269,42 +269,6 @@
         alt=""
         referrerpolicy="no-referrer-when-downgrade"
     /></noscript>
-    <!-- URL Fetcher -->
-    <div
-      class="fixed bottom-0 left-0 right-0 bg-neutral-950 p-4 border-t border-neutral-800 hidden"
-      id="importer-container"
-    >
-      <div
-        class="w-full max-w-4xl mx-auto bg-neutral-900 rounded p-4 border border-neutral-800 flex flex-col sm:flex-row items-center gap-3"
-      >
-        <input
-          type="text"
-          id="md-url-input"
-          placeholder="GitHub, GitLab, OneDrive, Google Drive, Gist URL..."
-          class="flex-grow bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-neutral-200 focus:ring-1 focus:ring-neutral-500 focus:outline-none"
-        />
-        <div class="flex gap-2">
-          <button
-            id="fetch-md-btn"
-            class="py-2 px-4 rounded font-normal bg-neutral-100 hover:bg-white text-neutral-900 transition-colors"
-          >
-            LOAD
-          </button>
-          <button
-            id="clear-storage-btn"
-            class="py-2 px-4 rounded font-normal bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
-          >
-            DELETE ALL
-          </button>
-          <button
-            id="close-importer-btn"
-            class="ml-auto text-neutral-400 hover:text-neutral-200 text-xl font-bold"
-          >
-            &times;
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Haupt-Lernkarte -->
     <div
@@ -319,10 +283,31 @@
         <div
           class="flex justify-between gap-2 flex-wrap w-full pb-1 items-center w-full"
         >
-          <select
-            id="deck-selector"
-            class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300 focus:ring-1 focus:ring-neutral-500 focus:outline-none md:w-auto"
-          ></select>
+          <div class="flex items-center gap-2 flex-wrap">
+            <select
+              id="deck-selector"
+              class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300 focus:ring-1 focus:ring-neutral-500 focus:outline-none md:w-auto"
+            ></select>
+
+            <button
+              id="rename-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+            >
+              Rename
+            </button>
+            <button
+              id="delete-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              id="add-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+            >
+              Add New
+            </button>
+          </div>
           <button
             id="share-deck-btn"
             class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
@@ -456,14 +441,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Bottom Toggle Button for Importer -->
-    <button
-      id="bottom-toggle-btn"
-      class="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-neutral-400 py-2 px-3 rounded transition-colors text-lg font-bold hover:text-neutral-200"
-    >
-      ^
-    </button>
 
     <!-- JavaScript Logik -->
     <script type="module" src="/src/main.ts"></script>

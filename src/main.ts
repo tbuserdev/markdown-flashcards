@@ -27,7 +27,6 @@ import {
   showAnswer,
 } from "./components/flashcard";
 import { initNavigation } from "./components/navigation";
-import { initImporter, toggleImporter } from "./components/importer";
 import {
   initClassification,
   classifyQuestion,
@@ -38,34 +37,27 @@ import { DEFAULT_QUICKSTART_MARKDOWN } from "./assets/quickstart";
 
 let classifyButtons: NodeListOf<Element>;
 let filterButtons: NodeListOf<Element>;
-let urlInput: HTMLInputElement;
-let fetchBtn: HTMLButtonElement;
-let clearBtn: HTMLButtonElement;
-let toggleImporterBtn: HTMLButtonElement;
-let closeImporterBtn: HTMLButtonElement;
 let shareDeckBtn: HTMLButtonElement;
-let bottomToggleBtn: HTMLButtonElement;
+let renameDeckBtn: HTMLButtonElement;
+let deleteDeckBtn: HTMLButtonElement;
+let addDeckBtn: HTMLButtonElement;
+let clearBtn: HTMLButtonElement;
 
 async function init() {
   classifyButtons = document.querySelectorAll(".classify-btn");
   filterButtons = document.querySelectorAll(".filter-btn");
-  urlInput = document.getElementById("md-url-input") as HTMLInputElement;
-  fetchBtn = document.getElementById("fetch-md-btn") as HTMLButtonElement;
-  clearBtn = document.getElementById("clear-storage-btn") as HTMLButtonElement;
-  toggleImporterBtn = document.getElementById(
-    "toggle-importer-btn"
-  ) as HTMLButtonElement;
-  closeImporterBtn = document.getElementById(
-    "close-importer-btn"
-  ) as HTMLButtonElement;
   shareDeckBtn = document.getElementById("share-deck-btn") as HTMLButtonElement;
-  bottomToggleBtn = document.getElementById(
-    "bottom-toggle-btn"
+  renameDeckBtn = document.getElementById(
+    "rename-deck-btn"
   ) as HTMLButtonElement;
+  deleteDeckBtn = document.getElementById(
+    "delete-deck-btn"
+  ) as HTMLButtonElement;
+  addDeckBtn = document.getElementById("add-deck-btn") as HTMLButtonElement;
+  clearBtn = document.getElementById("clear-storage-btn") as HTMLButtonElement;
 
   initFlashcard();
   initNavigation();
-  initImporter();
   initClassification();
   initFilter();
 
@@ -88,23 +80,13 @@ async function init() {
     );
   });
 
-  fetchBtn?.addEventListener("click", fetchAndCreateDeckFromUrl);
   clearBtn?.addEventListener("click", clearLocalStorageAndReload);
-  toggleImporterBtn?.addEventListener("click", toggleImporter);
   shareDeckBtn?.addEventListener("click", handleShareClick);
-  if (toggleImporterBtn) {
-    toggleImporterBtn.textContent = "Open Importer";
-  }
-  closeImporterBtn?.addEventListener("click", toggleImporter);
-  urlInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") fetchAndCreateDeckFromUrl();
-  });
+  renameDeckBtn?.addEventListener("click", handleRenameDeck);
+  deleteDeckBtn?.addEventListener("click", handleDeleteDeck);
+  addDeckBtn?.addEventListener("click", handleAddNewDeck);
 
-  bottomToggleBtn?.addEventListener("click", toggleImporter);
-
-  document.addEventListener("keydown", (e) => {
-    if (document.activeElement === urlInput) return;
-
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.key === "ArrowRight") goToNext();
     if (e.key === "ArrowLeft") goToPrev();
     if (e.key === " ") {
@@ -190,12 +172,14 @@ function reinitializeWithContent(newQuestions: Deck["questions"]) {
   console.log(`App reinitialized. ${questions.length} questions loaded.`);
 }
 
-async function fetchAndCreateDeckFromUrl() {
-  const url = urlInput.value.trim();
+async function handleAddNewDeck() {
+  const url = prompt(
+    "Enter a URL to load a deck from:\n\nSupported: GitHub, GitLab, OneDrive, Google Drive, Gist URL..."
+  );
   if (!url) {
-    alert("Please enter a URL.");
     return;
   }
+
   try {
     await createDeckFromUrl(url, false);
   } catch (error: unknown) {
@@ -330,6 +314,90 @@ function goToPrev() {
   if (currentFilteredIndex > 0) {
     displayQuestion(filteredIndices[currentFilteredIndex - 1]);
   }
+}
+
+function handleRenameDeck() {
+  if (!activeDeckId) {
+    alert("No deck selected.");
+    return;
+  }
+
+  const activeDeck = decks.find((d) => d.id === activeDeckId);
+  if (!activeDeck) {
+    alert("Deck not found.");
+    return;
+  }
+
+  const newName = prompt("Enter a new name for this deck:", activeDeck.name);
+  if (newName === null) {
+    return;
+  }
+
+  if (newName.trim() === "") {
+    alert("Deck name cannot be empty.");
+    return;
+  }
+
+  const nameExists = decks.some(
+    (deck) => deck.name === newName && deck.id !== activeDeckId
+  );
+  if (nameExists) {
+    alert(`A deck named "${newName}" already exists.`);
+    return;
+  }
+
+  activeDeck.name = newName;
+  const updatedDecks = decks.map((d) =>
+    d.id === activeDeckId ? activeDeck : d
+  );
+  setDecks(updatedDecks);
+  saveDecks();
+  updateDeckSelector();
+  alert("Deck renamed successfully!");
+}
+
+function handleDeleteDeck() {
+  if (!activeDeckId) {
+    alert("No deck selected.");
+    return;
+  }
+
+  const activeDeck = decks.find((d) => d.id === activeDeckId);
+  if (!activeDeck) {
+    alert("Deck not found.");
+    return;
+  }
+
+  const confirmDelete = confirm(
+    `Are you sure you want to delete the deck "${activeDeck.name}"? This cannot be undone.`
+  );
+  if (!confirmDelete) {
+    return;
+  }
+
+  const updatedDecks = decks.filter((d) => d.id !== activeDeckId);
+  setDecks(updatedDecks);
+  saveDecks();
+
+  if (updatedDecks.length > 0) {
+    setActiveDeck(updatedDecks[0].id);
+  } else {
+    const newDeck: Deck = {
+      id: DEFAULT_DECK_ID,
+      name: "Quickstart Guide",
+      url: null,
+      markdown: DEFAULT_QUICKSTART_MARKDOWN,
+      questions: [],
+    };
+    newDeck.questions = parseQuestions(DEFAULT_QUICKSTART_MARKDOWN);
+    setDecks([newDeck]);
+    setActiveDeckId(newDeck.id);
+    saveDecks();
+    saveActiveDeckId();
+    setActiveDeck(newDeck.id);
+  }
+
+  alert("Deck deleted successfully!");
 }
 
 document.addEventListener("DOMContentLoaded", init);
