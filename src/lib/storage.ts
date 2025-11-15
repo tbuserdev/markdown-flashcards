@@ -1,4 +1,10 @@
-import { setDecks, setActiveDeckId, decks, activeDeckId } from "./state";
+import {
+  setDecks,
+  setActiveDeckId,
+  decks,
+  activeDeckId,
+  DEFAULT_DECK_ID,
+} from "./state";
 import { parseQuestions } from "./markdown";
 import type { Deck, FlashcardStatus } from "./state";
 
@@ -51,7 +57,7 @@ export function migrateToMultiDeckStorage() {
 
   if (oldMarkdown) {
     const defaultDeck: Deck = {
-      id: "default-deck-id",
+      id: DEFAULT_DECK_ID,
       name: "Default Deck",
       url: null,
       markdown: oldMarkdown,
@@ -62,14 +68,10 @@ export function migrateToMultiDeckStorage() {
     const parsedQuestions = parseQuestions(oldMarkdown);
 
     // Apply old status if available
+    let oldStatuses: FlashcardStatus[] = [];
     if (oldStatus) {
       try {
-        const oldStatuses = JSON.parse(oldStatus) as FlashcardStatus[];
-        parsedQuestions.forEach((q, i) => {
-          if (i < oldStatuses.length) {
-            q.status = oldStatuses[i];
-          }
-        });
+        oldStatuses = JSON.parse(oldStatus) as FlashcardStatus[];
       } catch (e) {
         console.warn(
           "Failed to parse old status, using 'unseen' for all cards",
@@ -78,7 +80,10 @@ export function migrateToMultiDeckStorage() {
       }
     }
 
-    defaultDeck.questions = parsedQuestions;
+    defaultDeck.questions = parsedQuestions.map((q, i) => ({
+      ...q,
+      status: i < oldStatuses.length ? oldStatuses[i] : "unseen",
+    }));
 
     setDecks([defaultDeck]);
     setActiveDeckId(defaultDeck.id);

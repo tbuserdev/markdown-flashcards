@@ -1,5 +1,7 @@
 export type FlashcardStatus = "unseen" | "easy" | "medium" | "hard";
 
+export const DEFAULT_DECK_ID = "default-deck";
+
 export interface Flashcard {
   q: string;
   a: string;
