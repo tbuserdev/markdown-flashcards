@@ -218,6 +218,14 @@
         visibility: visible;
       }
 
+      /* Always show importer toggle on small screens (no hover on touch) */
+      @media (max-width: 640px) {
+        .hover-area #toggle-importer-btn {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
       /* Bottom Toggle Button Rotation */
       #bottom-toggle-btn {
         transition: opacity 0.3s ease;
@@ -306,73 +314,68 @@
       <!-- Statusleiste oben -->
       <div
         id="status-bar"
-        class="p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-neutral-800"
+        class="p-4 flex flex-col justify-between md:items-center gap-4 border-b border-neutral-800"
       >
-        <!-- Filter-Buttons -->
-        <div class="flex items-center gap-2 flex-wrap">
+        <div
+          class="flex justify-between gap-2 flex-wrap w-full pb-1 items-center w-full"
+        >
           <select
             id="deck-selector"
-            class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300 focus:ring-1 focus:ring-neutral-500 focus:outline-none"
+            class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300 focus:ring-1 focus:ring-neutral-500 focus:outline-none md:w-auto"
           ></select>
-          <span
-            class="text-sm font-normal text-neutral-500 pr-2 hidden sm:inline"
-            >Filter:</span
-          >
-          <button
-            data-filter="all"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
-          >
-            All (<span id="count-all">0</span>)
-          </button>
-          <button
-            data-filter="unseen"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Remaining (<span id="count-unseen">0</span>)
-          </button>
-          <button
-            data-filter="easy"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Easy (<span id="count-easy">0</span>)
-          </button>
-          <button
-            data-filter="medium"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Medium (<span id="count-medium">0</span>)
-          </button>
-          <button
-            data-filter="hard"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Hard (<span id="count-hard">0</span>)
-          </button>
-        </div>
-        <!-- Navigations-Zähler und Importer Button -->
-        <div class="flex items-center gap-4">
-          <div
-            id="question-counter"
-            class="text-sm font-normal text-neutral-500 flex items-center"
-          >
-            Question 0 / 0
-            <span
-              class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
-              >i</span
-            >
-          </div>
-          <button
-            id="toggle-importer-btn"
-            class="hidden py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
-          >
-            Open Importer
-          </button>
           <button
             id="share-deck-btn"
             class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
           >
             Share
           </button>
+        </div>
+        <!-- Filter-Buttons -->
+        <div class="flex justify-between gap-2 flex-wrap w-full hover-area">
+          <div class="flex gap-2 flex-wrap overflow-x-auto md:overflow-visible">
+            <button
+              data-filter="all"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
+            >
+              All (<span id="count-all">0</span>)
+            </button>
+            <button
+              data-filter="unseen"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Remaining (<span id="count-unseen">0</span>)
+            </button>
+            <button
+              data-filter="easy"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Easy (<span id="count-easy">0</span>)
+            </button>
+            <button
+              data-filter="medium"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Medium (<span id="count-medium">0</span>)
+            </button>
+            <button
+              data-filter="hard"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Hard (<span id="count-hard">0</span>)
+            </button>
+          </div>
+          <div class="flex items-center gap-4">
+            <div
+              id="question-counter"
+              class="text-sm font-normal text-neutral-500 flex items-center"
+            >
+              Question 0 / 0
+              <span
+                class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
+                >i</span
+              >
+            </div>
+          </div>
         </div>
       </div>
 
