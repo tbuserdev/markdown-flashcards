@@ -1,3 +1,6 @@
+import { decks, activeDeckId } from "./state";
+import type { Deck } from "./state";
+
 export async function transformUrl(url: string): Promise<string> {
   if (
     url.includes("gist.github.com") &&
@@ -24,7 +27,7 @@ export async function transformUrl(url: string): Promise<string> {
     } catch (error) {
       console.warn(
         "Could not fetch gist API, falling back to default raw URL:",
-        error,
+        error
       );
     }
 
@@ -64,12 +67,18 @@ export async function transformUrl(url: string): Promise<string> {
 }
 
 export function handleShareClick() {
-  const lastSourceUrl = localStorage.getItem("lastSourceUrl");
-  if (!lastSourceUrl) {
+  if (!activeDeckId) {
+    alert("No deck selected. Please select a deck first.");
+    return;
+  }
+
+  const activeDeck = decks.find((d: Deck) => d.id === activeDeckId);
+  if (!activeDeck || !activeDeck.url) {
     alert("No source URL to share. Load a deck from a URL first.");
     return;
   }
-  const shareUrl = generateShareUrl(lastSourceUrl);
+
+  const shareUrl = generateShareUrl(activeDeck.url);
   copyToClipboard(shareUrl);
 }
 
@@ -88,7 +97,7 @@ function copyToClipboard(text: string) {
         console.error("Failed to copy with navigator.clipboard:", err);
         prompt(
           "Could not copy automatically. Please copy this URL manually:",
-          text,
+          text
         );
       });
   } else {
@@ -110,7 +119,7 @@ function copyToClipboard(text: string) {
       console.error("Fallback copy failed:", err);
       prompt(
         "Could not copy automatically. Please copy this URL manually:",
-        text,
+        text
       );
     }
     document.body.removeChild(textArea);
