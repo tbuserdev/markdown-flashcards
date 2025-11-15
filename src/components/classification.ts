@@ -1,6 +1,6 @@
 import { questions, currentQuestionIndex } from "../lib/state";
 import type { FlashcardStatus } from "../lib/state";
-import { saveStatus } from "../lib/storage";
+import { saveDecks } from "../lib/storage";
 import { showAnswer } from "./flashcard";
 
 let countAllEl: HTMLElement;
@@ -25,7 +25,7 @@ export function classifyQuestion(
   questions[currentQuestionIndex].status = status;
   showAnswer();
   updateSummaryCounts();
-  saveStatus();
+  saveDecks();
   goToNext();
 }
 
