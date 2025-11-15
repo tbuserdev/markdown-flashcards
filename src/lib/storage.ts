@@ -1,16 +1,11 @@
-import {
-  setDecks,
-  setActiveDeckId,
-  decks,
-  activeDeckId,
-} from "./state";
+import { setDecks, setActiveDeckId, decks, activeDeckId } from "./state";
 import { parseQuestions } from "./markdown";
 import type { Deck, FlashcardStatus } from "./state";
 
 export function saveDecks() {
   try {
     localStorage.setItem("decks", JSON.stringify(decks));
-  } catch (e) a
+  } catch (e) {
     console.warn("Saving decks to localStorage failed.", e);
   }
 }
@@ -56,15 +51,17 @@ export function migrateToMultiDeckStorage() {
 
   if (oldMarkdown) {
     const defaultDeck: Deck = {
-      id: "default-deck",
+      id: "default-deck-id",
       name: "Default Deck",
       url: null,
       markdown: oldMarkdown,
       questions: [],
     };
 
+    // Parse the markdown to get questions
     const parsedQuestions = parseQuestions(oldMarkdown);
 
+    // Apply old status if available
     if (oldStatus) {
       try {
         const oldStatuses = JSON.parse(oldStatus) as FlashcardStatus[];
@@ -74,7 +71,10 @@ export function migrateToMultiDeckStorage() {
           }
         });
       } catch (e) {
-        console.warn("Failed to parse old status, using 'unseen' for all cards", e);
+        console.warn(
+          "Failed to parse old status, using 'unseen' for all cards",
+          e
+        );
       }
     }
 
