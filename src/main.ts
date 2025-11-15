@@ -17,7 +17,6 @@ import {
   loadActiveDeckId,
   saveActiveDeckId,
   migrateToMultiDeckStorage,
-  clearLocalStorageAndReload,
 } from "./lib/storage";
 import { transformUrl, handleShareClick } from "./lib/url";
 import { parseQuestions } from "./lib/markdown";
@@ -41,7 +40,6 @@ let shareDeckBtn: HTMLButtonElement;
 let renameDeckBtn: HTMLButtonElement;
 let deleteDeckBtn: HTMLButtonElement;
 let addDeckBtn: HTMLButtonElement;
-let clearBtn: HTMLButtonElement;
 
 async function init() {
   classifyButtons = document.querySelectorAll(".classify-btn");
@@ -54,7 +52,6 @@ async function init() {
     "delete-deck-btn"
   ) as HTMLButtonElement;
   addDeckBtn = document.getElementById("add-deck-btn") as HTMLButtonElement;
-  clearBtn = document.getElementById("clear-storage-btn") as HTMLButtonElement;
 
   initFlashcard();
   initNavigation();
@@ -80,7 +77,6 @@ async function init() {
     );
   });
 
-  clearBtn?.addEventListener("click", clearLocalStorageAndReload);
   shareDeckBtn?.addEventListener("click", handleShareClick);
   renameDeckBtn?.addEventListener("click", handleRenameDeck);
   deleteDeckBtn?.addEventListener("click", handleDeleteDeck);
@@ -124,14 +120,7 @@ async function loadInitialDecks() {
 
   if (decks.length === 0) {
     console.log("No decks in localStorage. Loading default content.");
-    const newDeck: Deck = {
-      id: DEFAULT_DECK_ID,
-      name: "Quickstart Guide",
-      url: null,
-      markdown: DEFAULT_QUICKSTART_MARKDOWN,
-      questions: [],
-    };
-    newDeck.questions = parseQuestions(DEFAULT_QUICKSTART_MARKDOWN);
+    const newDeck = createDefaultDeck();
     setDecks([newDeck]);
     setActiveDeckId(newDeck.id);
     saveDecks();
@@ -160,6 +149,18 @@ function setActiveDeck(deckId: string) {
 
 function updateDeckSelector() {
   initDeckSelector(setActiveDeck);
+}
+
+function createDefaultDeck(): Deck {
+  const newDeck: Deck = {
+    id: DEFAULT_DECK_ID,
+    name: "Quickstart Guide",
+    url: null,
+    markdown: DEFAULT_QUICKSTART_MARKDOWN,
+    questions: [],
+  };
+  newDeck.questions = parseQuestions(DEFAULT_QUICKSTART_MARKDOWN);
+  return newDeck;
 }
 
 function reinitializeWithContent(newQuestions: Deck["questions"]) {
@@ -219,71 +220,69 @@ async function createDeckFromUrl(url: string, isPreload: boolean) {
     return;
   }
 
-  if (deckName) {
-    const nameExists = decks.some((deck) => deck.name === deckName);
-    if (nameExists && !isPreload) {
-      const tryAgain = !window.confirm(
-        `A deck named "${deckName}" already exists. Do you want to continue and create another deck with the same name?`
-      );
-      if (tryAgain) {
-        alert("Please choose a different deck name.");
-        return;
-      }
-    }
+  if (deckName.trim() === "") {
+    alert("Deck name cannot be empty.");
+    return;
+  }
 
-    const urlDeckIndex = decks.findIndex((deck) => deck.url === sourceUrl);
-    if (urlDeckIndex !== -1) {
-      const action = isPreload
-        ? window.prompt(
-            `A deck from this URL already exists ("${decks[urlDeckIndex].name}"). Type "replace" to overwrite, "keep" to add anyway, or "cancel" to abort.`,
-            "cancel"
-          )
-        : window.prompt(
-            `A deck from this URL already exists ("${decks[urlDeckIndex].name}"). Type "replace" to overwrite, "keep" to add anyway, or "cancel" to abort.`,
-            "cancel"
-          );
-      if (action === null || action.toLowerCase() === "cancel") {
-        alert("Deck loading cancelled.");
-        // remove the preload url and then reload
-        if (isPreload) {
-          removePreloadUrl();
-        }
-        location.reload();
-        return;
-      } else if (action.toLowerCase() === "replace") {
-        const newDeck: Deck = {
-          id: decks[urlDeckIndex].id,
-          name: deckName,
-          url: sourceUrl,
-          markdown: markdownContent,
-          questions: parseQuestions(markdownContent),
-        };
-        const updatedDecks = [...decks];
-        updatedDecks[urlDeckIndex] = newDeck;
-        setDecks(updatedDecks);
-        saveDecks();
-        setActiveDeck(newDeck.id);
-        alert("Deck replaced successfully!");
-        return;
-      } else if (action.toLowerCase() !== "keep") {
-        alert("Deck loading cancelled.");
-        return;
-      }
+  const nameExists = decks.some((deck) => deck.name === deckName);
+  if (nameExists && !isPreload) {
+    const tryAgain = !window.confirm(
+      `A deck named "${deckName}" already exists. Do you want to continue and create another deck with the same name?`
+    );
+    if (tryAgain) {
+      alert("Please choose a different deck name.");
+      return;
     }
+  }
 
-    const newDeck: Deck = {
-      id: crypto.randomUUID(),
-      name: deckName,
-      url: sourceUrl,
-      markdown: markdownContent,
-      questions: parseQuestions(markdownContent),
-    };
-    setDecks([...decks, newDeck]);
-    saveDecks();
-    setActiveDeck(newDeck.id);
-    if (!isPreload) {
-      alert("Deck successfully loaded and saved!");
+  const urlDeckIndex = decks.findIndex((deck) => deck.url === sourceUrl);
+  if (urlDeckIndex !== -1) {
+    const action = window.prompt(
+      `A deck from this URL already exists ("${decks[urlDeckIndex].name}"). Type "replace" to overwrite, "keep" to add anyway, or "cancel" to abort.`,
+      "cancel"
+    );
+    if (action === null || action.toLowerCase() === "cancel") {
+      alert("Deck loading cancelled.");
+      // remove the preload url and then reload
+      if (isPreload) {
+        removePreloadUrl();
+      }
+      location.reload();
+      return;
+    } else if (action.toLowerCase() === "replace") {
+      const newDeck: Deck = {
+        id: decks[urlDeckIndex].id,
+        name: deckName,
+        url: sourceUrl,
+        markdown: markdownContent,
+        questions: parseQuestions(markdownContent),
+      };
+      const updatedDecks = [...decks];
+      updatedDecks[urlDeckIndex] = newDeck;
+      setDecks(updatedDecks);
+      saveDecks();
+      setActiveDeck(newDeck.id);
+      alert("Deck replaced successfully!");
+      return;
+    } else if (action.toLowerCase() !== "keep") {
+      alert("Deck loading cancelled.");
+      return;
     }
+  }
+
+  const newDeck: Deck = {
+    id: crypto.randomUUID(),
+    name: deckName,
+    url: sourceUrl,
+    markdown: markdownContent,
+    questions: parseQuestions(markdownContent),
+  };
+  setDecks([...decks, newDeck]);
+  saveDecks();
+  setActiveDeck(newDeck.id);
+  if (!isPreload) {
+    alert("Deck successfully loaded and saved!");
   }
 }
 
@@ -382,14 +381,7 @@ function handleDeleteDeck() {
   if (updatedDecks.length > 0) {
     setActiveDeck(updatedDecks[0].id);
   } else {
-    const newDeck: Deck = {
-      id: DEFAULT_DECK_ID,
-      name: "Quickstart Guide",
-      url: null,
-      markdown: DEFAULT_QUICKSTART_MARKDOWN,
-      questions: [],
-    };
-    newDeck.questions = parseQuestions(DEFAULT_QUICKSTART_MARKDOWN);
+    const newDeck = createDefaultDeck();
     setDecks([newDeck]);
     setActiveDeckId(newDeck.id);
     saveDecks();
