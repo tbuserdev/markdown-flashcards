@@ -4,9 +4,20 @@ import {
   setCurrentFilter,
   filteredIndices,
   currentQuestionIndex,
+  setDecks,
+  setActiveDeckId,
+  decks,
+  activeDeckId,
 } from "./lib/state";
-import type { FlashcardStatus } from "./lib/state";
-import { loadStatus, clearLocalStorageAndReload } from "./lib/storage";
+import type { FlashcardStatus, Deck } from "./lib/state";
+import {
+  loadDecks,
+  saveDecks,
+  loadActiveDeckId,
+  saveActiveDeckId,
+  migrateToMultiDeckStorage,
+  clearLocalStorageAndReload,
+} from "./lib/storage";
 import { transformUrl, handleShareClick } from "./lib/url";
 import { parseQuestions } from "./lib/markdown";
 import {
@@ -21,6 +32,7 @@ import {
   classifyQuestion,
 } from "./components/classification";
 import { initFilter, applyFilter } from "./components/filter";
+import { initDeckSelector } from "./components/deck-selector";
 
 let classifyButtons: NodeListOf<Element>;
 let filterButtons: NodeListOf<Element>;
@@ -74,7 +86,7 @@ async function init() {
     );
   });
 
-  fetchBtn?.addEventListener("click", fetchAndSaveFromUrl);
+  fetchBtn?.addEventListener("click", fetchAndCreateDeckFromUrl);
   clearBtn?.addEventListener("click", clearLocalStorageAndReload);
   toggleImporterBtn?.addEventListener("click", toggleImporter);
   shareDeckBtn?.addEventListener("click", handleShareClick);
@@ -83,7 +95,7 @@ async function init() {
   }
   closeImporterBtn?.addEventListener("click", toggleImporter);
   urlInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") fetchAndSaveFromUrl();
+    if (e.key === "Enter") fetchAndCreateDeckFromUrl();
   });
 
   bottomToggleBtn?.addEventListener("click", toggleImporter);
@@ -102,25 +114,20 @@ async function init() {
     if (e.key === "3") classifyQuestion("easy", goToNext);
   });
 
-  await loadInitialMarkdown();
+  await loadInitialDecks();
 }
 
-async function loadInitialMarkdown() {
+async function loadInitialDecks() {
+  migrateToMultiDeckStorage();
+  loadDecks();
+  loadActiveDeckId();
+
   const urlParams = new URL(location.href).searchParams;
   const preloadUrl = urlParams.get("preload");
 
   if (preloadUrl) {
     try {
-      const transformedUrl = await transformUrl(preloadUrl);
-      const response = await fetch(transformedUrl);
-      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-      const markdownContent = await response.text();
-
-      localStorage.setItem("markdownContent", markdownContent);
-      localStorage.setItem("lastSourceUrl", preloadUrl);
-      localStorage.removeItem("ipgLernStatus");
-
-      reinitializeWithContent(markdownContent);
+      await createDeckFromUrl(preloadUrl, true);
       history.replaceState(null, "", location.pathname);
       return;
     } catch (error: any) {
@@ -130,66 +137,102 @@ async function loadInitialMarkdown() {
     }
   }
 
-  let markdownContent = localStorage.getItem("markdownContent");
-  if (!markdownContent) {
-    console.log("No Markdown in localStorage. Loading local 'input.md'.");
-    try {
-      markdownContent =
-        "# Markdown Flashcards Trainer - Quickstart Guide\n\nWelcome to the Markdown Flashcards Trainer!\n---\nThis app helps you study flashcards created from Markdown files. Each flashcard has a question and an answer, separated by '---'. Questions are grouped by triple newlines.\n\n\nWhat is a flashcard in this app?\n---\nA flashcard consists of a question and an answer. The question appears first. Click 'Show Answer' or press Space to reveal the answer. Then classify it as Easy, Medium, or Hard.\n\n\nHow do I load my own flashcards?\n---\nClick the '^' button at the bottom or 'Open Importer' in the top-right. Enter a URL to a Markdown file from GitHub, GitLab, OneDrive, Google Drive, or a Gist. Click 'LOAD' to fetch and save it.\n\n\nHow do I navigate between flashcards?\n---\nUse the ← and → buttons, or press the Left/Right arrow keys on your keyboard. The counter shows your current position (e.g., Question 3 / 10).\n\n\nHow do I classify flashcards?\n---\nAfter revealing the answer, choose Easy (3), Medium (2), or Hard (1) using the buttons or number keys. This tracks your progress and helps with filtering.\n\n\nWhat do the filters do?\n---\nUse the filter buttons at the top: 'All' shows everything, 'Remaining' shows unseen cards, and the others show cards you've classified as Easy/Medium/Hard. Switch filters to focus your study.\n\n\nWhat are the keyboard shortcuts?\n---\n- Space: Show answer\n- 1: Hard\n- 2: Medium\n- 3: Easy\n- ←: Previous card\n- →: Next card\n\n\nHow do I reset my progress?\n---\nIn the importer (bottom panel), click 'DELETE ALL' to clear saved flashcards and progress. This reloads the page with default content.\n\n\nCan I use local files?\n---\nFor local development, use a local server (e.g., `python -m http.server`) to serve your Markdown file, then enter the localhost URL in the importer.\n\n\nWhat format should my Markdown be?\n---\nWrite questions and answers like this:\n\nQuestion 1\n---\nAnswer 1\n\n\nQuestion 2\n---\nAnswer 2\n\nUse Markdown formatting (bold, italic, lists, code) in questions and answers.\n\n\nHow does progress saving work?\n---\nYour classifications are saved in your browser's localStorage. They persist between sessions but are cleared when you load new content or delete all data.";
-      console.warn("Local loading not possible. Using quickstart content.");
-    } catch (error) {
-      console.error("Error loading local 'input.md':", error);
-      markdownContent = "# Error\n\nNo data found.\n---\nStart with empty app.";
-    }
+  if (decks.length === 0) {
+    console.log("No decks in localStorage. Loading default content.");
+    const defaultMarkdown =
+      "# Markdown Flashcards Trainer - Quickstart Guide\n\nWelcome to the Markdown Flashcards Trainer!\n---\nThis app helps you study flashcards created from Markdown files. Each flashcard has a question and an answer, separated by '---'. Questions are grouped by triple newlines.\n\n\nWhat is a flashcard in this app?\n---\nA flashcard consists of a question and an answer. The question appears first. Click 'Show Answer' or press Space to reveal the answer. Then classify it as Easy, Medium, or Hard.\n\n\nHow do I load my own flashcards?\n---\nClick the '^' button at the bottom or 'Open Importer' in the top-right. Enter a URL to a Markdown file from GitHub, GitLab, OneDrive, Google Drive, or a Gist. Click 'LOAD' to fetch and save it.\n\n\nHow do I navigate between flashcards?\n---\nUse the ← and → buttons, or press the Left/Right arrow keys on your keyboard. The counter shows your current position (e.g., Question 3 / 10).\n\n\nHow do I classify flashcards?\n---\nAfter revealing the answer, choose Easy (3), Medium (2), or Hard (1) using the buttons or number keys. This tracks your progress and helps with filtering.\n\n\nWhat do the filters do?\n---\nUse the filter buttons at the top: 'All' shows everything, 'Remaining' shows unseen cards, and the others show cards you've classified as Easy/Medium/Hard. Switch filters to focus your study.\n\n\nWhat are the keyboard shortcuts?\n---\n- Space: Show answer\n- 1: Hard\n- 2: Medium\n- 3: Easy\n- ←: Previous card\n- →: Next card\n\n\nHow do I reset my progress?\n---\nIn the importer (bottom panel), click 'DELETE ALL' to clear saved flashcards and progress. This reloads the page with default content.\n\n\nCan I use local files?\n---\nFor local development, use a local server (e.g., `python -m http.server`) to serve your Markdown file, then enter the localhost URL in the importer.\n\n\nWhat format should my Markdown be?\n---\nWrite questions and answers like this:\n\nQuestion 1\n---\nAnswer 1\n\n\nQuestion 2\n---\nAnswer 2\n\nUse Markdown formatting (bold, italic, lists, code) in questions and answers.\n\n\nHow does progress saving work?\n---\nYour classifications are saved in your browser's localStorage. They persist between sessions but are cleared when you load new content or delete all data.";
+    const newDeck: Deck = {
+      id: "default-deck",
+      name: "Quickstart Guide",
+      url: null,
+      markdown: defaultMarkdown,
+      questions: [],
+    };
+    newDeck.questions = parseQuestions(defaultMarkdown);
+    setDecks([newDeck]);
+    setActiveDeckId(newDeck.id);
+    saveDecks();
+    saveActiveDeckId();
   }
-  reinitializeWithContent(markdownContent);
+
+  if (activeDeckId) {
+    setActiveDeck(activeDeckId);
+  } else if (decks.length > 0) {
+    setActiveDeck(decks[0].id);
+  } else {
+    reinitializeWithContent([]);
+  }
+  updateDeckSelector();
 }
 
-function reinitializeWithContent(markdownContent: string) {
+function setActiveDeck(deckId: string) {
+  const deck = decks.find((d) => d.id === deckId);
+  if (deck) {
+    setActiveDeckId(deck.id);
+    saveActiveDeckId();
+    reinitializeWithContent(deck.questions);
+    updateDeckSelector();
+  }
+}
+
+function updateDeckSelector() {
+  initDeckSelector(setActiveDeck);
+}
+
+function reinitializeWithContent(newQuestions: any[]) {
   questions.length = 0;
+  Array.prototype.push.apply(questions, newQuestions);
   setCurrentQuestionIndex(0);
   setCurrentFilter("all");
   filteredIndices.length = 0;
-
-  parseQuestions(markdownContent);
-  loadStatus();
   applyFilter("all");
-
   console.log(`App reinitialized. ${questions.length} questions loaded.`);
 }
 
-async function fetchAndSaveFromUrl() {
+async function fetchAndCreateDeckFromUrl() {
   let url = urlInput.value.trim();
   if (!url) {
     alert("Please enter a URL.");
     return;
   }
-  const sourceUrl = url;
-  url = await transformUrl(url);
-
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(
-        `Fetch failed: ${response.status} ${response.statusText}`
-      );
-    }
-    const markdownContent = await response.text();
-
-    localStorage.setItem("markdownContent", markdownContent);
-    localStorage.setItem("lastSourceUrl", sourceUrl);
-    localStorage.removeItem("ipgLernStatus");
-
-    alert(
-      "Markdown successfully loaded and saved! The page will be reinitialized."
-    );
-
-    reinitializeWithContent(markdownContent);
+    await createDeckFromUrl(url, false);
   } catch (error: any) {
     console.error("Error fetching URL:", error);
     alert(
       `Error loading URL. Check the URL and browser console for details. \n\nError: ${error.message}`
     );
+  }
+}
+
+async function createDeckFromUrl(url: string, isPreload: boolean) {
+  const sourceUrl = url;
+  const transformedUrl = await transformUrl(url);
+
+  const response = await fetch(transformedUrl);
+  if (!response.ok) {
+    throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+  }
+  const markdownContent = await response.text();
+
+  const deckName = isPreload
+    ? `Loaded from ${new URL(sourceUrl).hostname}`
+    : prompt("Enter a name for this deck:", `Deck from ${new URL(sourceUrl).hostname}`);
+
+  if (deckName) {
+    const newDeck: Deck = {
+      id: crypto.randomUUID(),
+      name: deckName,
+      url: sourceUrl,
+      markdown: markdownContent,
+      questions: parseQuestions(markdownContent),
+    };
+    setDecks([...decks, newDeck]);
+    saveDecks();
+    setActiveDeck(newDeck.id);
+    if (!isPreload) {
+      alert("Deck successfully loaded and saved!");
+    }
   }
 }
 
