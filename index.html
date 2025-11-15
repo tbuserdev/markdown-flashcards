@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
@@ -218,6 +218,14 @@
         visibility: visible;
       }
 
+      /* Always show importer toggle on small screens (no hover on touch) */
+      @media (max-width: 640px) {
+        .hover-area #toggle-importer-btn {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
       /* Bottom Toggle Button Rotation */
       #bottom-toggle-btn {
         transition: opacity 0.3s ease;
@@ -261,42 +269,6 @@
         alt=""
         referrerpolicy="no-referrer-when-downgrade"
     /></noscript>
-    <!-- URL Fetcher -->
-    <div
-      class="fixed bottom-0 left-0 right-0 bg-neutral-950 p-4 border-t border-neutral-800 hidden"
-      id="importer-container"
-    >
-      <div
-        class="w-full max-w-4xl mx-auto bg-neutral-900 rounded p-4 border border-neutral-800 flex flex-col sm:flex-row items-center gap-3"
-      >
-        <input
-          type="text"
-          id="md-url-input"
-          placeholder="GitHub, GitLab, OneDrive, Google Drive, Gist URL..."
-          class="flex-grow bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-neutral-200 focus:ring-1 focus:ring-neutral-500 focus:outline-none"
-        />
-        <div class="flex gap-2">
-          <button
-            id="fetch-md-btn"
-            class="py-2 px-4 rounded font-normal bg-neutral-100 hover:bg-white text-neutral-900 transition-colors"
-          >
-            LOAD
-          </button>
-          <button
-            id="clear-storage-btn"
-            class="py-2 px-4 rounded font-normal bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
-          >
-            DELETE ALL
-          </button>
-          <button
-            id="close-importer-btn"
-            class="ml-auto text-neutral-400 hover:text-neutral-200 text-xl font-bold"
-          >
-            &times;
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Haupt-Lernkarte -->
     <div
@@ -306,69 +278,89 @@
       <!-- Statusleiste oben -->
       <div
         id="status-bar"
-        class="p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-neutral-800"
+        class="p-4 flex flex-col justify-between md:items-center gap-4 border-b border-neutral-800"
       >
-        <!-- Filter-Buttons -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <span
-            class="text-sm font-normal text-neutral-500 pr-2 hidden sm:inline"
-            >Filter:</span
-          >
-          <button
-            data-filter="all"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
-          >
-            All (<span id="count-all">0</span>)
-          </button>
-          <button
-            data-filter="unseen"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Remaining (<span id="count-unseen">0</span>)
-          </button>
-          <button
-            data-filter="easy"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Easy (<span id="count-easy">0</span>)
-          </button>
-          <button
-            data-filter="medium"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Medium (<span id="count-medium">0</span>)
-          </button>
-          <button
-            data-filter="hard"
-            class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-          >
-            Hard (<span id="count-hard">0</span>)
-          </button>
-        </div>
-        <!-- Navigations-Zähler und Importer Button -->
-        <div class="flex items-center gap-4">
-          <div
-            id="question-counter"
-            class="text-sm font-normal text-neutral-500 flex items-center"
-          >
-            Question 0 / 0
-            <span
-              class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
-              >i</span
+        <div
+          class="flex justify-between gap-2 flex-wrap w-full pb-1 items-center w-full"
+        >
+          <div class="flex items-center gap-2 flex-wrap">
+            <select
+              id="deck-selector"
+              class="py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300 focus:ring-1 focus:ring-neutral-500 focus:outline-none md:w-auto"
+            ></select>
+
+            <button
+              id="rename-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
             >
+              Rename
+            </button>
+            <button
+              id="delete-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              id="add-deck-btn"
+              class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
+            >
+              Add New
+            </button>
           </div>
-          <button
-            id="toggle-importer-btn"
-            class="hidden py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
-          >
-            Open Importer
-          </button>
           <button
             id="share-deck-btn"
             class="py-1 px-3 rounded text-sm font-normal bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
           >
             Share
           </button>
+        </div>
+        <!-- Filter-Buttons -->
+        <div class="flex justify-between gap-2 flex-wrap w-full hover-area">
+          <div class="flex gap-2 flex-wrap overflow-x-auto md:overflow-visible">
+            <button
+              data-filter="all"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-100 text-neutral-900"
+            >
+              All (<span id="count-all">0</span>)
+            </button>
+            <button
+              data-filter="unseen"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Remaining (<span id="count-unseen">0</span>)
+            </button>
+            <button
+              data-filter="easy"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Easy (<span id="count-easy">0</span>)
+            </button>
+            <button
+              data-filter="medium"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Medium (<span id="count-medium">0</span>)
+            </button>
+            <button
+              data-filter="hard"
+              class="filter-btn py-1 px-3 rounded text-sm font-normal transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            >
+              Hard (<span id="count-hard">0</span>)
+            </button>
+          </div>
+          <div class="flex items-center gap-4">
+            <div
+              id="question-counter"
+              class="text-sm font-normal text-neutral-500 flex items-center"
+            >
+              Question 0 / 0
+              <span
+                class="ml-2 text-xs bg-neutral-700 px-1 rounded text-neutral-300"
+                >i</span
+              >
+            </div>
+          </div>
         </div>
       </div>
 
@@ -449,14 +441,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Bottom Toggle Button for Importer -->
-    <button
-      id="bottom-toggle-btn"
-      class="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-neutral-400 py-2 px-3 rounded transition-colors text-lg font-bold hover:text-neutral-200"
-    >
-      ^
-    </button>
 
     <!-- JavaScript Logik -->
     <script type="module" src="/src/main.ts"></script>

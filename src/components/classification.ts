@@ -1,6 +1,6 @@
 import { questions, currentQuestionIndex } from "../lib/state";
 import type { FlashcardStatus } from "../lib/state";
-import { saveStatus } from "../lib/storage";
+import { saveDecks } from "../lib/storage";
 import { showAnswer } from "./flashcard";
 
 let countAllEl: HTMLElement;
@@ -19,18 +19,18 @@ export function initClassification() {
 
 export function classifyQuestion(
   status: FlashcardStatus,
-  goToNext: () => void
+  goToNext: () => void,
 ) {
   if (questions.length === 0) return;
   questions[currentQuestionIndex].status = status;
   showAnswer();
   updateSummaryCounts();
-  saveStatus();
+  saveDecks();
   goToNext();
 }
 
 export function updateSummaryCounts() {
-  let counts = {
+  const counts = {
     all: questions.length,
     unseen: 0,
     easy: 0,

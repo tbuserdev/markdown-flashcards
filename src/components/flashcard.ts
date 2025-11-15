@@ -21,13 +21,13 @@ export function initFlashcard() {
   answerAreaEl = document.getElementById("answer-area") as HTMLElement;
   answerTextEl = document.getElementById("answer-text") as HTMLElement;
   questionCounterEl = document.getElementById(
-    "question-counter"
+    "question-counter",
   ) as HTMLElement;
   showAnswerBtn = document.getElementById(
-    "show-answer-btn"
+    "show-answer-btn",
   ) as HTMLButtonElement;
   classificationButtonsContainer = document.getElementById(
-    "classification-buttons"
+    "classification-buttons",
   ) as HTMLElement;
 }
 

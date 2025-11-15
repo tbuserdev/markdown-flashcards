@@ -1,3 +1,6 @@
+import { decks, activeDeckId } from "./state";
+import type { Deck } from "./state";
+
 export async function transformUrl(url: string): Promise<string> {
   if (
     url.includes("gist.github.com") &&
@@ -7,9 +10,7 @@ export async function transformUrl(url: string): Promise<string> {
     const gistId = parts[parts.length - 1].split("#")[0];
 
     try {
-      const apiResponse = await fetch(
-        `https://api.github.com/gists/${gistId}`
-      );
+      const apiResponse = await fetch(`https://api.github.com/gists/${gistId}`);
       if (apiResponse.ok) {
         const gistData = await apiResponse.json();
         interface GistFile {
@@ -66,12 +67,18 @@ export async function transformUrl(url: string): Promise<string> {
 }
 
 export function handleShareClick() {
-  const lastSourceUrl = localStorage.getItem("lastSourceUrl");
-  if (!lastSourceUrl) {
+  if (!activeDeckId) {
+    alert("No deck selected. Please select a deck first.");
+    return;
+  }
+
+  const activeDeck = decks.find((d: Deck) => d.id === activeDeckId);
+  if (!activeDeck || !activeDeck.url) {
     alert("No source URL to share. Load a deck from a URL first.");
     return;
   }
-  const shareUrl = generateShareUrl(lastSourceUrl);
+
+  const shareUrl = generateShareUrl(activeDeck.url);
   copyToClipboard(shareUrl);
 }
 
@@ -106,10 +113,7 @@ function copyToClipboard(text: string) {
       if (successful) {
         alert("Shareable URL copied to clipboard!");
       } else {
-        prompt(
-          "Fallback copy failed. Please copy this URL manually:",
-          text
-        );
+        prompt("Fallback copy failed. Please copy this URL manually:", text);
       }
     } catch (err) {
       console.error("Fallback copy failed:", err);

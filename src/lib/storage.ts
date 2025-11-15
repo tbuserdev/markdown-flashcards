@@ -1,39 +1,109 @@
-import { questions } from "./state";
-import type { Flashcard, FlashcardStatus } from "./state";
+import {
+  setDecks,
+  setActiveDeckId,
+  decks,
+  activeDeckId,
+  DEFAULT_DECK_ID,
+} from "./state";
+import { parseQuestions } from "./markdown";
+import type { Deck, FlashcardStatus } from "./state";
 
-export function saveStatus() {
-  const statuses = questions.map((q: Flashcard) => q.status);
+export function saveDecks() {
   try {
-    localStorage.setItem("ipgLernStatus", JSON.stringify(statuses));
+    localStorage.setItem("decks", JSON.stringify(decks));
   } catch (e) {
-    console.warn("Saving to localStorage failed.", e);
+    console.warn("Saving decks to localStorage failed.", e);
   }
 }
 
-export function loadStatus() {
+export function loadDecks() {
   try {
-    const item = localStorage.getItem("ipgLernStatus");
-    if (!item) return;
-    const storedStatuses = JSON.parse(item) as FlashcardStatus[];
-    if (storedStatuses && storedStatuses.length === questions.length) {
-      questions.forEach((q: Flashcard, i: number) => {
-        q.status = storedStatuses[i];
-      });
+    const item = localStorage.getItem("decks");
+    if (item) {
+      const loadedDecks = JSON.parse(item) as Deck[];
+      setDecks(loadedDecks);
     }
   } catch (e) {
-    console.warn("Loading from localStorage failed.", e);
+    console.warn("Loading decks from localStorage failed.", e);
+  }
+}
+
+export function saveActiveDeckId() {
+  try {
+    if (activeDeckId) {
+      localStorage.setItem("activeDeckId", activeDeckId);
+    } else {
+      localStorage.removeItem("activeDeckId");
+    }
+  } catch (e) {
+    console.warn("Saving active deck ID to localStorage failed.", e);
+  }
+}
+
+export function loadActiveDeckId() {
+  try {
+    const item = localStorage.getItem("activeDeckId");
+    if (item) {
+      setActiveDeckId(item);
+    }
+  } catch (e) {
+    console.warn("Loading active deck ID from localStorage failed.", e);
+  }
+}
+
+export function migrateToMultiDeckStorage() {
+  const oldMarkdown = localStorage.getItem("markdownContent");
+  const oldStatus = localStorage.getItem("ipgLernStatus");
+
+  if (oldMarkdown) {
+    const defaultDeck: Deck = {
+      id: DEFAULT_DECK_ID,
+      name: "Default Deck",
+      url: null,
+      markdown: oldMarkdown,
+      questions: [],
+    };
+
+    // Parse the markdown to get questions
+    const parsedQuestions = parseQuestions(oldMarkdown);
+
+    // Apply old status if available
+    let oldStatuses: FlashcardStatus[] = [];
+    if (oldStatus) {
+      try {
+        oldStatuses = JSON.parse(oldStatus) as FlashcardStatus[];
+      } catch (e) {
+        console.warn(
+          "Failed to parse old status, using 'unseen' for all cards",
+          e,
+        );
+      }
+    }
+
+    defaultDeck.questions = parsedQuestions.map((q, i) => ({
+      ...q,
+      status: i < oldStatuses.length ? oldStatuses[i] : "unseen",
+    }));
+
+    setDecks([defaultDeck]);
+    setActiveDeckId(defaultDeck.id);
+    saveDecks();
+    saveActiveDeckId();
+
+    localStorage.removeItem("markdownContent");
+    localStorage.removeItem("ipgLernStatus");
+    localStorage.removeItem("lastSourceUrl");
   }
 }
 
 export function clearLocalStorageAndReload() {
   if (
     confirm(
-      "Do you really want to delete all stored data (Markdown and learning progress)?"
+      "Do you really want to delete all stored data (decks and learning progress)?",
     )
   ) {
-    localStorage.removeItem("markdownContent");
-    localStorage.removeItem("ipgLernStatus");
-    localStorage.removeItem("lastSourceUrl");
+    localStorage.removeItem("decks");
+    localStorage.removeItem("activeDeckId");
     alert("All data deleted. The page will reload with default questions.");
     location.reload();
   }

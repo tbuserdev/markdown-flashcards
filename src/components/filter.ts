@@ -41,18 +41,18 @@ export function applyFilter(filter: string) {
       "bg-neutral-100",
       "text-neutral-900",
       "ring-1",
-      "ring-neutral-100"
+      "ring-neutral-100",
     );
     btn.classList.add(
       "bg-neutral-800",
       "hover:bg-neutral-700",
-      "text-neutral-300"
+      "text-neutral-300",
     );
     if (isActive) {
       btn.classList.remove(
         "bg-neutral-800",
         "hover:bg-neutral-700",
-        "text-neutral-300"
+        "text-neutral-300",
       );
       btn.classList.add("bg-neutral-100", "text-neutral-900");
     }
