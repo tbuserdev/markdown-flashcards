@@ -9,6 +9,12 @@ interface ExportConfig {
 }
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const FLASHCARD_BASE_URL = "https://tbuserdev.github.io/markdown-flashcards/";
+
+// ============================================================================
 // Data Extraction and Injection
 // ============================================================================
 
@@ -315,8 +321,7 @@ async function handleExport(
       status.textContent = "Creating Gist...";
       const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token);
 
-      const flashcardBaseUrl = "https://tbuserdev.github.io/markdown-flashcards/";
-      const flashcardUrl = `${flashcardBaseUrl}?preload=${encodeURIComponent(gistUrl)}`;
+      const flashcardUrl = `${FLASHCARD_BASE_URL}?preload=${encodeURIComponent(gistUrl)}`;
 
       gistLinkAnchor.href = gistUrl;
       flashcardLinkAnchor.href = flashcardUrl;
