@@ -36,3 +36,5 @@ interface ExportConfig {
 interface ExportResult extends ExportConfig {
   itemCount: number;
 }
+
+type ButtonState = "ready" | "loading" | "reset";
