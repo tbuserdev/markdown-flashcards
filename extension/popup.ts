@@ -325,9 +325,6 @@ async function handleExport(
       customFilename
     );
 
-    // Save settings
-    await saveSettings(githubPatInput.value, filenameInput.value);
-
     if (pushToGistInput.checked) {
       const token = githubPatInput.value.trim();
       if (!token) {
@@ -347,9 +344,16 @@ async function handleExport(
       flashcardLinkAnchor.href = flashcardUrl;
       resultLinksDiv.style.display = "flex";
 
+      // Save settings after successful Gist creation
+      await saveSettings(githubPatInput.value, filenameInput.value);
+
       status.textContent = `Export successful! Gist created.`;
     } else {
-      downloadFile(exportConfig);
+      await downloadFile(exportConfig);
+      
+      // Save settings after successful file download
+      await saveSettings(githubPatInput.value, filenameInput.value);
+      
       status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
     }
   } catch (error: unknown) {
