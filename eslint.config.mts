@@ -5,11 +5,21 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    ignores: ["**/dist/**/*.js"],
-    plugins: { js },
-    extends: ["js/recommended"],
-    languageOptions: { globals: globals.browser },
+    ignores: [
+      "**/dist/**",
+      "**/.vitepress/cache/**",
+      "**/.vitepress/dist/**",
+      "docs/.vitepress/cache/deps/**",
+      "node_modules/**",
+    ],
   },
-  tseslint.configs.recommended,
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    languageOptions: {
+      globals: globals.browser,
+      parser: tseslint.parser,
+    },
+  },
 ]);
