@@ -1,14 +1,18 @@
 {
-    "extends": "../tsconfig.json",
-    "compilerOptions": {
-        "rootDir": ".",
-        "outDir": "dist",
-        "types": [
-            "chrome"
-        ],
-        "noEmit": false
-    },
-    "include": [
-        "."
-    ]
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": [
+      "chrome"
+    ],
+    "noEmit": false,
+    "module": "None",
+    "target": "ES2020",
+    "moduleResolution": "Node",
+    "resolveJsonModule": false
+  },
+  "include": [
+    "."
+  ]
 }
