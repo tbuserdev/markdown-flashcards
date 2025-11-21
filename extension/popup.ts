@@ -1,230 +1,158 @@
 // ============================================================================
-// Type Definitions
+// Imports
 // ============================================================================
 
-interface ExportConfig {
-  fileName: string;
-  mimeType: string;
-  content: string;
-}
+import {
+  getActiveTab,
+  injectContentScript,
+  extractDataFromPage,
+} from "./dataExtractor.js";
+import { prepareExport } from "./formatters.js";
+import { createGist } from "./gistExporter.js";
+import { downloadFile } from "./fileDownloader.js";
+import { loadSettings, saveSettings } from "./settings.js";
 
 // ============================================================================
-// Data Extraction and Injection
+// Constants
 // ============================================================================
 
-async function getActiveTab(): Promise<chrome.tabs.Tab> {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
+const FLASHCARD_BASE_URL = "https://tbuserdev.github.io/markdown-flashcards/";
 
-  if (!tab || !tab.id) {
-    throw new Error("No active tab found");
-  }
-
-  return tab;
-}
-
-async function injectContentScript(tabId: number): Promise<void> {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId, allFrames: true },
-      files: ["dist/contentScript.js"],
-      world: "MAIN",
-    });
-  } catch (error) {
-    // Content script might already be injected via manifest, which is fine
-    console.log("Content script injection note:", error);
-  }
-}
-
-async function extractDataFromPage(
-  tabId: number,
-  inputFormat: InputFormat
-): Promise<NotebookLM_Flashcard | NotebookLM_Quiz> {
-  const injectionResults = await chrome.scripting.executeScript({
-    target: { tabId, allFrames: true },
-    func: async (input: InputFormat) => {
-      // Call the async extractData function and await it
-      return await window.extractData(input);
-    },
-    args: [inputFormat],
-    world: "MAIN",
-  });
-
-  console.log("Injection results:", injectionResults);
-
-  const successResult = injectionResults.find(
-    (r) => r.result && r.result.status === "ok" && r.result.data
-  );
-
-  // Filter out frames that simply don't have app-root
-  const meaningfulErrors = injectionResults.filter(
-    (r) =>
-      r.result &&
-      r.result.status === "error" &&
-      r.result.error !== "Frame does not contain app-root"
-  );
-
-  if (meaningfulErrors.length > 0 && !successResult) {
-    const errorResult = meaningfulErrors[0];
-    console.error(
-      "Error result details:",
-      JSON.stringify(errorResult.result, null, 2)
-    );
-    console.error("Full error result:", errorResult);
-    throw new Error(errorResult.result!.error || "Unknown extraction error");
-  }
-
-  if (!successResult) {
-    console.error("No successful frame found. All results:", injectionResults);
-    throw new Error(
-      "No frame could extract the data. Make sure you're on a NotebookLM flashcard or quiz page."
-    );
-  }
-
-  console.log("Success result:", successResult);
-  return successResult.result!.data!;
-}
+const STORAGE_KEYS = {
+  gistUrl: "lastGistUrl",
+  flashcardUrl: "lastFlashcardUrl",
+} as const;
 
 // ============================================================================
-// Data Formatting
+// State
 // ============================================================================
 
-function formatQuizAsMarkdown(quizData: Quiz[]): string {
-  return quizData
-    .map((q) => {
-      const front = `**${q.question}**\n\n${q.answerOptions
-        .map((option, index) => `${index + 1}. ${option.text}`)
-        .join("\n")}`;
-
-      const correctIndex = q.answerOptions.findIndex((o) => o.isCorrect);
-      const correct = q.answerOptions[correctIndex];
-      const back = correct
-        ? `${correctIndex + 1}. ${correct.text}\n\n${correct.rationale}`
-        : "No correct answer";
-
-      return `${front}\n---\n${back}`;
-    })
-    .join("\n\n\n");
-}
-
-function formatFlashcardsAsMarkdown(flashcardData: Flashcard[]): string {
-  return flashcardData.map((f) => `${f.f}\n---\n${f.b}`).join("\n\n\n");
-}
-
-function prepareQuizExport(
-  quizData: Quiz[],
-  outputFormat: ExportFormat
-): ExportConfig {
-  if (outputFormat === "raw-json") {
-    return {
-      fileName: "notebooklm_quiz_export.json",
-      mimeType: "application/json",
-      content: JSON.stringify(quizData, null, 2),
-    };
-  } else {
-    return {
-      fileName: "notebooklm_quiz_export.md",
-      mimeType: "text/markdown",
-      content: formatQuizAsMarkdown(quizData),
-    };
-  }
-}
-
-function prepareFlashcardExport(
-  flashcardData: Flashcard[],
-  outputFormat: ExportFormat
-): ExportConfig {
-  if (outputFormat === "raw-json") {
-    return {
-      fileName: "notebooklm_flashcards_export.json",
-      mimeType: "application/json",
-      content: JSON.stringify(flashcardData, null, 2),
-    };
-  } else {
-    return {
-      fileName: "notebooklm_flashcards_export.md",
-      mimeType: "text/markdown",
-      content: formatFlashcardsAsMarkdown(flashcardData),
-    };
-  }
-}
-
-function prepareExport(
-  data: NotebookLM_Flashcard | NotebookLM_Quiz,
-  outputFormat: ExportFormat
-): ExportConfig & { itemCount: number } {
-  if ("quiz" in data) {
-    const quizData = (data as NotebookLM_Quiz).quiz;
-    return {
-      ...prepareQuizExport(quizData, outputFormat),
-      itemCount: quizData.length,
-    };
-  } else if ("flashcards" in data) {
-    const flashcardData = (data as NotebookLM_Flashcard).flashcards;
-    return {
-      ...prepareFlashcardExport(flashcardData, outputFormat),
-      itemCount: flashcardData.length,
-    };
-  } else {
-    throw new Error("Unknown data format");
-  }
-}
-
-// ============================================================================
-// File Download
-// ============================================================================
-
-async function downloadFile(config: ExportConfig) {
-  const blob = new Blob([config.content], { type: config.mimeType });
-  const blobUrl = URL.createObjectURL(blob);
-
-  // Return the promise so we can await it
-  try {
-    await chrome.downloads.download({
-      url: blobUrl,
-      filename: config.fileName,
-      saveAs: true, // This forces the "Save As" dialog
-    });
-  } catch (err) {
-    console.error("Download failed", err);
-    throw err;
-  } finally {
-    // Optional: clean up the blob URL to prevent memory leaks
-    // setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-  }
-}
+let buttonState: ButtonState = "ready";
 
 // ============================================================================
 // Main Export Logic
 // ============================================================================
 
-async function handleExport(
+export async function handleExport(
   inputType: HTMLSelectElement,
   outputFormat: HTMLSelectElement,
-  status: HTMLElement
+  status: HTMLElement,
+  githubPatInput: HTMLInputElement,
+  filenameInput: HTMLInputElement,
+  pushToGistInput: HTMLInputElement,
+  resultLinksDiv: HTMLElement,
+  gistLinkAnchor: HTMLAnchorElement,
+  flashcardLinkAnchor: HTMLAnchorElement,
+  saveSettingsFunc: () => Promise<void>
 ): Promise<void> {
   status.textContent = "Sending request to all frames...";
+  resultLinksDiv.style.display = "none";
 
-  try {
-    const tab = await getActiveTab();
-    await injectContentScript(tab.id!);
+  const tab = await getActiveTab();
+  await injectContentScript(tab.id!);
 
-    const inputFormat: InputFormat =
-      inputType.value === "flashcards" ? "flashcard" : "quiz";
-    const data = await extractDataFromPage(tab.id!, inputFormat);
+  const inputFormat: InputFormat =
+    inputType.value === "flashcards" ? "flashcard" : "quiz";
+  const data = await extractDataFromPage(tab.id!, inputFormat);
 
-    const exportConfig = prepareExport(
-      data,
-      outputFormat.value as ExportFormat
+  const customFilename = filenameInput.value.trim() || undefined;
+
+  const exportConfig = prepareExport(
+    data,
+    outputFormat.value as ExportFormat,
+    customFilename
+  );
+
+  if (pushToGistInput.checked) {
+    const token = githubPatInput.value.trim();
+    if (!token) {
+      throw new Error("GitHub PAT is required for Gist export.");
+    }
+
+    status.textContent = "Creating Gist...";
+    const gistUrl = await createGist(
+      exportConfig.content,
+      exportConfig.fileName,
+      token
     );
 
-    downloadFile(exportConfig);
+    const flashcardUrl = `${FLASHCARD_BASE_URL}?preload=${encodeURIComponent(gistUrl)}`;
+
+    gistLinkAnchor.href = gistUrl;
+    flashcardLinkAnchor.href = flashcardUrl;
+    resultLinksDiv.style.display = "flex";
+
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.gistUrl]: gistUrl,
+      [STORAGE_KEYS.flashcardUrl]: flashcardUrl,
+    });
+
+    // Save settings after successful Gist creation
+    await saveSettingsFunc();
+
+    status.textContent = `Export successful! Gist created.`;
+  } else {
+    await downloadFile(exportConfig);
+
+    // Save settings after successful file download
+    await saveSettingsFunc();
 
     status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
-  } catch (error: unknown) {
-    status.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+// ============================================================================
+// Button Click Handler
+// ============================================================================
+
+async function handleButtonClick(
+  btn: HTMLButtonElement,
+  inputType: HTMLSelectElement,
+  outputFormat: HTMLSelectElement,
+  status: HTMLElement,
+  githubPatInput: HTMLInputElement,
+  filenameInput: HTMLInputElement,
+  pushToGistInput: HTMLInputElement,
+  resultLinksDiv: HTMLElement,
+  gistLinkAnchor: HTMLAnchorElement,
+  flashcardLinkAnchor: HTMLAnchorElement,
+  saveSettingsFunc: () => Promise<void>
+): Promise<void> {
+  if (buttonState === "ready") {
+    buttonState = "loading";
+    btn.textContent = "Exporting...";
+    btn.disabled = true;
+    try {
+      await handleExport(
+        inputType,
+        outputFormat,
+        status,
+        githubPatInput,
+        filenameInput,
+        pushToGistInput,
+        resultLinksDiv,
+        gistLinkAnchor,
+        flashcardLinkAnchor,
+        saveSettingsFunc
+      );
+      buttonState = "reset";
+      btn.textContent = "Reset";
+      btn.disabled = false;
+    } catch (error) {
+      status.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
+      buttonState = "ready";
+      btn.textContent = "Export Data!";
+      btn.disabled = false;
+    }
+  } else if (buttonState === "reset") {
+    buttonState = "ready";
+    btn.textContent = "Export Data!";
+    resultLinksDiv.style.display = "none";
+    await chrome.storage.local.remove([
+      STORAGE_KEYS.gistUrl,
+      STORAGE_KEYS.flashcardUrl,
+    ]);
+    status.textContent = "Ready for export.";
   }
 }
 
@@ -232,24 +160,124 @@ async function handleExport(
 // Initialization
 // ============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("exportBtn") as HTMLButtonElement | null;
-  const status = document.getElementById("status") as HTMLElement | null;
-  const inputType = document.getElementById(
-    "inputType"
-  ) as HTMLSelectElement | null;
-  const outputFormat = document.getElementById(
-    "outputFormat"
-  ) as HTMLSelectElement | null;
-
-  if (!btn || !status || !inputType || !outputFormat) {
-    console.error("One or more required elements are missing in the popup.");
-    return;
+function getElement<T extends HTMLElement>(id: string): T {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Required element with id '${id}' not found in the DOM.`);
   }
+  return element as T;
+}
 
-  btn.addEventListener("click", () =>
-    handleExport(inputType, outputFormat, status)
-  );
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const btn = getElement<HTMLButtonElement>("exportBtn");
+    const status = getElement<HTMLElement>("status");
+    const inputType = getElement<HTMLSelectElement>("inputType");
+    const outputFormat = getElement<HTMLSelectElement>("outputFormat");
+    const githubPatInput = getElement<HTMLInputElement>("githubPat");
+    const filenameInput = getElement<HTMLInputElement>("filename");
+    const pushToGistInput = getElement<HTMLInputElement>("pushToGist");
+    const resultLinksDiv = getElement<HTMLElement>("resultLinks");
+    const gistLinkAnchor = getElement<HTMLAnchorElement>("gistLink");
+    const flashcardLinkAnchor = getElement<HTMLAnchorElement>("flashcardLink");
+    const gistOptions = getElement<HTMLElement>("gistOptions");
+    const securityInfoToggle =
+      getElement<HTMLButtonElement>("securityInfoToggle");
+    const securityInfo = getElement<HTMLElement>("securityInfo");
 
-  status.textContent = "Ready for export.";
+    // Load saved settings
+    await loadSettings(
+      inputType,
+      outputFormat,
+      githubPatInput,
+      filenameInput,
+      pushToGistInput
+    );
+
+    // Track the original PAT value to detect changes
+    let lastSavedPat = githubPatInput.value;
+
+    const storedLinks = await chrome.storage.local.get([
+      STORAGE_KEYS.gistUrl,
+      STORAGE_KEYS.flashcardUrl,
+    ]);
+    if (
+      storedLinks[STORAGE_KEYS.gistUrl] &&
+      storedLinks[STORAGE_KEYS.flashcardUrl]
+    ) {
+      gistLinkAnchor.href = storedLinks[STORAGE_KEYS.gistUrl] as string;
+      flashcardLinkAnchor.href = storedLinks[
+        STORAGE_KEYS.flashcardUrl
+      ] as string;
+      resultLinksDiv.style.display = "flex";
+    }
+
+    const saveCurrentSettings = async () => {
+      const currentPat = githubPatInput.value;
+      await saveSettings(
+        inputType.value,
+        outputFormat.value,
+        currentPat,
+        filenameInput.value,
+        pushToGistInput.checked,
+        lastSavedPat // Pass the last saved PAT to detect changes
+      );
+      lastSavedPat = currentPat; // Update the tracked PAT after saving
+    };
+
+    // Show indicator if PAT is saved
+    if (githubPatInput.value) {
+      githubPatInput.placeholder = "••••••••••••••••";
+    }
+
+    // Set gist options visibility based on loaded checkbox
+    gistOptions.style.display = pushToGistInput.checked ? "block" : "none";
+
+    // Toggle security info visibility
+    securityInfoToggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      const isVisible = securityInfo.style.display !== "none";
+      securityInfo.style.display = isVisible ? "none" : "block";
+      securityInfoToggle.textContent = isVisible
+        ? "More information"
+        : "Less information";
+    });
+
+    // Toggle gist options visibility based on checkbox
+    pushToGistInput.addEventListener("change", () => {
+      console.log("Checkbox changed:", pushToGistInput.checked);
+      gistOptions.style.display = pushToGistInput.checked ? "block" : "none";
+      saveCurrentSettings();
+    });
+
+    // Save settings on change
+    inputType.addEventListener("change", saveCurrentSettings);
+    outputFormat.addEventListener("change", saveCurrentSettings);
+    githubPatInput.addEventListener("input", saveCurrentSettings);
+    filenameInput.addEventListener("input", saveCurrentSettings);
+
+    btn.addEventListener("click", () =>
+      handleButtonClick(
+        btn,
+        inputType,
+        outputFormat,
+        status,
+        githubPatInput,
+        filenameInput,
+        pushToGistInput,
+        resultLinksDiv,
+        gistLinkAnchor,
+        flashcardLinkAnchor,
+        saveCurrentSettings
+      )
+    );
+
+    status.textContent = "Ready for export.";
+  } catch (error) {
+    console.error("Initialization error:", error);
+    const status = document.getElementById("status");
+    if (status) {
+      status.textContent = "Initialization error. Check console for details.";
+    }
+  }
 });
