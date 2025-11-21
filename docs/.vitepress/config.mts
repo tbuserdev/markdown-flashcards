@@ -62,7 +62,6 @@ export default defineConfig({
           { text: "Changelog", link: "/misc/changelog" },
           { text: "Privacy Policy", link: "/misc/privacy-policy" },
           { text: "Terms of Service", link: "/misc/terms-of-service" },
-          { text: "Contact", link: "/misc/contact" },
         ],
       },
     ],
