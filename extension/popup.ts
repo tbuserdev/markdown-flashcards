@@ -6,11 +6,11 @@ import {
   getActiveTab,
   injectContentScript,
   extractDataFromPage,
-} from "./dataExtractor";
-import { prepareExport } from "./formatters";
-import { createGist } from "./gistExporter";
-import { downloadFile } from "./fileDownloader";
-import { loadSettings, saveSettings } from "./settings";
+} from "./dataExtractor.js";
+import { prepareExport } from "./formatters.js";
+import { createGist } from "./gistExporter.js";
+import { downloadFile } from "./fileDownloader.js";
+import { loadSettings, saveSettings } from "./settings.js";
 
 // ============================================================================
 // Constants
@@ -112,9 +112,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     const resultLinksDiv = getElement<HTMLElement>("resultLinks");
     const gistLinkAnchor = getElement<HTMLAnchorElement>("gistLink");
     const flashcardLinkAnchor = getElement<HTMLAnchorElement>("flashcardLink");
+    const patStatus = getElement<HTMLElement>("patStatus");
+    const gistOptions = getElement<HTMLElement>("gistOptions");
 
     // Load saved settings
     await loadSettings(githubPatInput, filenameInput);
+
+    // Show indicator if PAT is saved
+    if (githubPatInput.value) {
+      patStatus.style.display = "inline";
+      githubPatInput.placeholder = "••••••••••••••••";
+    }
+
+    // Toggle gist options visibility based on checkbox
+    pushToGistInput.addEventListener("change", () => {
+      console.log("Checkbox changed:", pushToGistInput.checked);
+      gistOptions.style.display = pushToGistInput.checked ? "block" : "none";
+    });
 
     btn.addEventListener("click", () =>
       handleExport(
