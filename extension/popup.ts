@@ -153,23 +153,72 @@ function prepareFlashcardExport(
 
 function prepareExport(
   data: NotebookLM_Flashcard | NotebookLM_Quiz,
-  outputFormat: ExportFormat
+  outputFormat: ExportFormat,
+  customFilename?: string
 ): ExportConfig & { itemCount: number } {
+  let config: ExportConfig;
+  let itemCount: number;
+
   if ("quiz" in data) {
     const quizData = (data as NotebookLM_Quiz).quiz;
-    return {
-      ...prepareQuizExport(quizData, outputFormat),
-      itemCount: quizData.length,
-    };
+    config = prepareQuizExport(quizData, outputFormat);
+    itemCount = quizData.length;
   } else if ("flashcards" in data) {
     const flashcardData = (data as NotebookLM_Flashcard).flashcards;
-    return {
-      ...prepareFlashcardExport(flashcardData, outputFormat),
-      itemCount: flashcardData.length,
-    };
+    config = prepareFlashcardExport(flashcardData, outputFormat);
+    itemCount = flashcardData.length;
   } else {
     throw new Error("Unknown data format");
   }
+
+  if (customFilename) {
+      // If it doesn't have an extension, add one based on output format
+      if (!customFilename.includes(".")) {
+          if (outputFormat === "raw-json") {
+              customFilename += ".json";
+          } else {
+              customFilename += ".md";
+          }
+      }
+      config.fileName = customFilename;
+  }
+
+  return { ...config, itemCount };
+}
+
+// ============================================================================
+// GitHub Gist Export
+// ============================================================================
+
+async function createGist(
+  content: string,
+  filename: string,
+  token: string
+): Promise<string> {
+  const response = await fetch("https://api.github.com/gists", {
+    method: "POST",
+    headers: {
+      Authorization: `token ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      description: "NotebookLM Flashcard Export",
+      public: true, // or false if you prefer secret gists
+      files: {
+        [filename]: {
+          content: content,
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`GitHub API Error: ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.html_url;
 }
 
 // ============================================================================
@@ -197,15 +246,46 @@ async function downloadFile(config: ExportConfig) {
 }
 
 // ============================================================================
+// Settings Management
+// ============================================================================
+
+async function loadSettings(
+  patInput: HTMLInputElement,
+  filenameInput: HTMLInputElement
+) {
+  const items = await chrome.storage.sync.get(["githubPat", "defaultFilename"]);
+  if (items.githubPat) {
+    patInput.value = items.githubPat as string;
+  }
+  if (items.defaultFilename) {
+    filenameInput.value = items.defaultFilename as string;
+  }
+}
+
+async function saveSettings(pat: string, filename: string) {
+  await chrome.storage.sync.set({
+    githubPat: pat,
+    defaultFilename: filename,
+  });
+}
+
+// ============================================================================
 // Main Export Logic
 // ============================================================================
 
 async function handleExport(
   inputType: HTMLSelectElement,
   outputFormat: HTMLSelectElement,
-  status: HTMLElement
+  status: HTMLElement,
+  githubPatInput: HTMLInputElement,
+  filenameInput: HTMLInputElement,
+  pushToGistInput: HTMLInputElement,
+  resultLinksDiv: HTMLElement,
+  gistLinkAnchor: HTMLAnchorElement,
+  flashcardLinkAnchor: HTMLAnchorElement
 ): Promise<void> {
   status.textContent = "Sending request to all frames...";
+  resultLinksDiv.style.display = "none";
 
   try {
     const tab = await getActiveTab();
@@ -215,14 +295,39 @@ async function handleExport(
       inputType.value === "flashcards" ? "flashcard" : "quiz";
     const data = await extractDataFromPage(tab.id!, inputFormat);
 
+    const customFilename = filenameInput.value.trim() || undefined;
+
     const exportConfig = prepareExport(
       data,
-      outputFormat.value as ExportFormat
+      outputFormat.value as ExportFormat,
+      customFilename
     );
 
-    downloadFile(exportConfig);
+    // Save settings
+    await saveSettings(githubPatInput.value, filenameInput.value);
 
-    status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
+    if (pushToGistInput.checked) {
+      const token = githubPatInput.value.trim();
+      if (!token) {
+        throw new Error("GitHub PAT is required for Gist export.");
+      }
+
+      status.textContent = "Creating Gist...";
+      const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token);
+
+      const flashcardBaseUrl = "https://tbuserdev.github.io/markdown-flashcards/";
+      const flashcardUrl = `${flashcardBaseUrl}?preload=${encodeURIComponent(gistUrl)}`;
+
+      gistLinkAnchor.href = gistUrl;
+      flashcardLinkAnchor.href = flashcardUrl;
+      resultLinksDiv.style.display = "flex";
+
+      status.textContent = `Export successful! Gist created.`;
+    } else {
+      downloadFile(exportConfig);
+      status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
+    }
+
   } catch (error: unknown) {
     status.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
   }
@@ -232,7 +337,7 @@ async function handleExport(
 // Initialization
 // ============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const btn = document.getElementById("exportBtn") as HTMLButtonElement | null;
   const status = document.getElementById("status") as HTMLElement | null;
   const inputType = document.getElementById(
@@ -242,13 +347,34 @@ document.addEventListener("DOMContentLoaded", () => {
     "outputFormat"
   ) as HTMLSelectElement | null;
 
-  if (!btn || !status || !inputType || !outputFormat) {
+  const githubPatInput = document.getElementById("githubPat") as HTMLInputElement | null;
+  const filenameInput = document.getElementById("filename") as HTMLInputElement | null;
+  const pushToGistInput = document.getElementById("pushToGist") as HTMLInputElement | null;
+  const resultLinksDiv = document.getElementById("resultLinks") as HTMLElement | null;
+  const gistLinkAnchor = document.getElementById("gistLink") as HTMLAnchorElement | null;
+  const flashcardLinkAnchor = document.getElementById("flashcardLink") as HTMLAnchorElement | null;
+
+
+  if (!btn || !status || !inputType || !outputFormat || !githubPatInput || !filenameInput || !pushToGistInput || !resultLinksDiv || !gistLinkAnchor || !flashcardLinkAnchor) {
     console.error("One or more required elements are missing in the popup.");
     return;
   }
 
+  // Load saved settings
+  await loadSettings(githubPatInput, filenameInput);
+
   btn.addEventListener("click", () =>
-    handleExport(inputType, outputFormat, status)
+    handleExport(
+        inputType,
+        outputFormat,
+        status,
+        githubPatInput,
+        filenameInput,
+        pushToGistInput,
+        resultLinksDiv,
+        gistLinkAnchor,
+        flashcardLinkAnchor
+    )
   );
 
   status.textContent = "Ready for export.";
