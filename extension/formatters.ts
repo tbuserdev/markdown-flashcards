@@ -79,14 +79,10 @@ export function prepareExport(
   }
 
   if (customFilename) {
-    if (!customFilename.includes(".")) {
-      if (outputFormat === "raw-json") {
-        customFilename += ".json";
-      } else {
-        customFilename += ".md";
-      }
-    }
-    config.fileName = customFilename;
+    const parts = customFilename.split(".");
+    const base = parts.slice(0, -1).join(".") || customFilename;
+    const correctExt = outputFormat === "raw-json" ? "json" : "md";
+    config.fileName = base + "." + correctExt;
   }
 
   return { ...config, itemCount };
