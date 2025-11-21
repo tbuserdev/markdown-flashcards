@@ -193,7 +193,9 @@ function prepareExport(
 async function createGist(
   content: string,
   filename: string,
-  token: string
+  token: string,
+  exportType: string,
+  itemCount: number
 ): Promise<string> {
   const response = await fetch("https://api.github.com/gists", {
     method: "POST",
@@ -202,7 +204,7 @@ async function createGist(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      description: "NotebookLM Flashcard Export",
+      description: `NotebookLM Export: ${itemCount} ${exportType}${itemCount !== 1 ? 's' : ''}`,
       public: true, // or false if you prefer secret gists
       files: {
         [filename]: {
@@ -328,7 +330,8 @@ async function handleExport(
       }
 
       status.textContent = "Creating Gist...";
-      const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token);
+      const exportType = "quiz" in data ? "quiz" : "flashcard";
+      const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token, exportType, exportConfig.itemCount);
 
       const flashcardBaseUrl = "https://tbuserdev.github.io/markdown-flashcards/";
       const flashcardUrl = `${flashcardBaseUrl}?preload=${encodeURIComponent(gistUrl)}`;
