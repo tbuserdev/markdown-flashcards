@@ -147,3 +147,6 @@ extension/plugin.pem
 
 # Local extension packages
 *.zip
+
+# Affinity Files
+*.af
