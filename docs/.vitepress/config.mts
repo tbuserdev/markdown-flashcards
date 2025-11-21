@@ -6,7 +6,24 @@ export default defineConfig({
   description: "Documentation for the fully local Markdown Flashcards",
   base: "/markdown-flashcards/docs/",
   themeConfig: {
-    nav: [],
+    nav: [
+      {
+        text: "Home",
+        link: "/",
+      },
+      {
+        text: "App",
+        link: "https://tbuserdev.github.io/markdown-flashcards/",
+      },
+      {
+        text: "GitHub",
+        link: "https://github.com/tbuserdev/markdown-flashcards",
+      },
+      {
+        text: "Issues",
+        link: "https://github.com/tbuserdev/markdown-flashcards/issues",
+      },
+    ],
 
     sidebar: [
       {
@@ -37,6 +54,15 @@ export default defineConfig({
           },
           { text: "Usage", link: "/markdown-flashcards/usage" },
           { text: "FAQ", link: "/markdown-flashcards/faq" },
+        ],
+      },
+      {
+        text: "Miscellaneous",
+        items: [
+          { text: "Changelog", link: "/misc/changelog" },
+          { text: "Privacy Policy", link: "/misc/privacy-policy" },
+          { text: "Terms of Service", link: "/misc/terms-of-service" },
+          { text: "Contact", link: "/misc/contact" },
         ],
       },
     ],
