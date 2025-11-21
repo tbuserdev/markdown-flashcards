@@ -213,8 +213,23 @@ async function createGist(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`GitHub API Error: ${response.statusText} - ${errorText}`);
+    let errorMessage = `GitHub API Error: ${response.status} ${response.statusText}`;
+    let errorDetails = "";
+    try {
+      const errorJson = await response.json();
+      if (errorJson && errorJson.message) {
+        errorDetails = errorJson.message;
+      }
+    } catch {
+      // Fallback to text if JSON parsing fails
+      errorDetails = await response.text();
+    }
+    if (response.status === 401) {
+      errorMessage = "Invalid GitHub token. Please check your credentials.";
+    } else if (response.status === 403) {
+      errorMessage = "Rate limit exceeded or insufficient permissions for GitHub API.";
+    }
+    throw new Error(`${errorMessage}${errorDetails ? " - " + errorDetails : ""}`);
   }
 
   const data = await response.json();
