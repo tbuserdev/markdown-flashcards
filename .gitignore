@@ -149,4 +149,7 @@ extension/plugin.pem
 *.zip
 
 # Affinity Files
-*.afpackage-lock.json
+*.af
+
+# npm package-lock.json (using pnpm)
+package-lock.json
