@@ -198,7 +198,7 @@ async function createGist(
   const response = await fetch("https://api.github.com/gists", {
     method: "POST",
     headers: {
-      Authorization: `token ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
