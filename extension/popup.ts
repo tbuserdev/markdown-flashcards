@@ -334,7 +334,7 @@ async function handleExport(
 
       status.textContent = `Export successful! Gist created.`;
     } else {
-      downloadFile(exportConfig);
+      await downloadFile(exportConfig);
       
       // Save settings after successful file download
       await saveSettings(githubPatInput.value, filenameInput.value);
