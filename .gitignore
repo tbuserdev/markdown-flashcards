@@ -150,3 +150,7 @@ extension/plugin.pem
 
 # Affinity Files
 *.af
+
+# Vitepress
+docs/.vitepress/dist
+docs/.vitepress/cache
