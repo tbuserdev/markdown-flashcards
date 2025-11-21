@@ -268,7 +268,7 @@ async function loadSettings(
   patInput: HTMLInputElement,
   filenameInput: HTMLInputElement
 ) {
-  const items = await chrome.storage.sync.get(["githubPat", "defaultFilename"]);
+  const items = await chrome.storage.local.get(["githubPat", "defaultFilename"]);
   if (items.githubPat) {
     patInput.value = items.githubPat as string;
   }
@@ -278,7 +278,7 @@ async function loadSettings(
 }
 
 async function saveSettings(pat: string, filename: string) {
-  await chrome.storage.sync.set({
+  await chrome.storage.local.set({
     githubPat: pat,
     defaultFilename: filename,
   });
