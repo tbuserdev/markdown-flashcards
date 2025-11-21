@@ -180,8 +180,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const resultLinksDiv = getElement<HTMLElement>("resultLinks");
     const gistLinkAnchor = getElement<HTMLAnchorElement>("gistLink");
     const flashcardLinkAnchor = getElement<HTMLAnchorElement>("flashcardLink");
-    const patStatus = getElement<HTMLElement>("patStatus");
     const gistOptions = getElement<HTMLElement>("gistOptions");
+    const securityInfoToggle =
+      getElement<HTMLButtonElement>("securityInfoToggle");
+    const securityInfo = getElement<HTMLElement>("securityInfo");
 
     // Load saved settings
     await loadSettings(
@@ -191,6 +193,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       filenameInput,
       pushToGistInput
     );
+
+    // Track the original PAT value to detect changes
+    let lastSavedPat = githubPatInput.value;
 
     const storedLinks = await chrome.storage.local.get([
       STORAGE_KEYS.gistUrl,
@@ -208,23 +213,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const saveCurrentSettings = async () => {
+      const currentPat = githubPatInput.value;
       await saveSettings(
         inputType.value,
         outputFormat.value,
-        githubPatInput.value,
+        currentPat,
         filenameInput.value,
-        pushToGistInput.checked
+        pushToGistInput.checked,
+        lastSavedPat // Pass the last saved PAT to detect changes
       );
+      lastSavedPat = currentPat; // Update the tracked PAT after saving
     };
 
     // Show indicator if PAT is saved
     if (githubPatInput.value) {
-      patStatus.style.display = "inline";
       githubPatInput.placeholder = "••••••••••••••••";
     }
 
     // Set gist options visibility based on loaded checkbox
     gistOptions.style.display = pushToGistInput.checked ? "block" : "none";
+
+    // Toggle security info visibility
+    securityInfoToggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      const isVisible = securityInfo.style.display !== "none";
+      securityInfo.style.display = isVisible ? "none" : "block";
+      securityInfoToggle.textContent = isVisible
+        ? "More information"
+        : "Less information";
+    });
 
     // Toggle gist options visibility based on checkbox
     pushToGistInput.addEventListener("change", () => {

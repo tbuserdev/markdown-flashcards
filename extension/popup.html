@@ -177,18 +177,32 @@
       <div id="gistOptions" style="display: none">
         <hr style="border: 1px solid #404040; margin: 1rem 0" />
         <h3>GitHub Gist Export</h3>
-        <label for="githubPat">
-          GitHub PAT (optional):
-          <span
-            id="patStatus"
-            style="
-              color: #22c55e;
-              font-size: 0.875rem;
-              margin-left: 0.5rem;
-              display: none;
-            "
-            >✓ Saved</span
-          >
+
+        <label
+          for="githubPat"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span>GitHub PAT:</span>
+          <div style="display: flex; align-items: center; gap: 0.5rem">
+            <button
+              id="securityInfoToggle"
+              style="
+                background: none;
+                border: none;
+                color: #737373;
+                cursor: pointer;
+                font-size: 0.75rem;
+                text-decoration: underline;
+                padding: 0;
+              "
+            >
+              More information
+            </button>
+          </div>
         </label>
         <input
           type="password"
@@ -207,6 +221,25 @@
           "
         />
 
+        <div
+          id="securityInfo"
+          style="
+            background-color: #1f3a3a;
+            border: 1px solid #16a34a;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #86efac;
+            display: none;
+          "
+        >
+          <strong style="color: #4ade80">🔒 Security:</strong> Your GitHub PAT
+          is encrypted locally using AES-256-GCM before storage. Only this
+          browser instance can decrypt it. For maximum security, use a token
+          with minimal required scopes (e.g., limited to gist access).
+        </div>
         <label for="filename">Filename (optional):</label>
         <input
           type="text"
