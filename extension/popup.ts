@@ -226,7 +226,20 @@ async function createGist(
       );
     }
 
-    const data = await response.json();
+    let data;
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error(`Failed to parse GitHub API response as JSON: ${err}`);
+      }
+    } else {
+      const text = await response.text();
+      throw new Error(
+        `Unexpected content-type from GitHub API: ${contentType}. Response: ${text}`
+      );
+    }
     return data.html_url;
   } catch (err: unknown) {
     if (err instanceof TypeError) {
@@ -350,10 +363,10 @@ async function handleExport(
       status.textContent = `Export successful! Gist created.`;
     } else {
       await downloadFile(exportConfig);
-      
+
       // Save settings after successful file download
       await saveSettings(githubPatInput.value, filenameInput.value);
-      
+
       status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
     }
   } catch (error: unknown) {
