@@ -204,7 +204,7 @@ async function createGist(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      description: `NotebookLM Export: ${itemCount} ${exportType}${itemCount !== 1 ? 's' : ''}`,
+      description: `NotebookLM Export: ${itemCount} ${exportType}${itemCount !== 1 ? (exportType === 'quiz' ? 'zes' : 's') : ''}`,
       public: true, // or false if you prefer secret gists
       files: {
         [filename]: {
