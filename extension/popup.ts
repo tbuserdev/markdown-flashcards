@@ -173,7 +173,7 @@ function prepareExport(
 
   if (customFilename) {
       // If it doesn't have an extension, add one based on output format
-      if (!customFilename.includes(".")) {
+      if (!/\.[^.]+$/.test(customFilename)) {
           if (outputFormat === "raw-json") {
               customFilename += ".json";
           } else {
