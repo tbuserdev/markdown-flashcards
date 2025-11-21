@@ -140,7 +140,7 @@
 
     <h3>GitHub Export</h3>
     <label for="githubPat">GitHub PAT (optional):</label>
-    <input type="password" id="githubPat" placeholder="ghp_..." style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; background-color: #404040; color: #f5f5f5; border: 1px solid #525252; margin-bottom: 1rem; box-sizing: border-box;">
+    <input type="password" id="githubPat" autocomplete="off" placeholder="ghp_..." style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; background-color: #404040; color: #f5f5f5; border: 1px solid #525252; margin-bottom: 1rem; box-sizing: border-box;">
 
     <label for="filename">Filename (optional):</label>
     <input type="text" id="filename" placeholder="My Flashcards" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; background-color: #404040; color: #f5f5f5; border: 1px solid #525252; margin-bottom: 1rem; box-sizing: border-box;">
@@ -154,8 +154,8 @@
     <div id="status"></div>
 
     <div id="resultLinks" style="display: none; margin-top: 1rem; flex-direction: column; gap: 0.5rem;">
-      <a id="gistLink" href="javascript:void(0)" target="_blank" style="color: #f5f5f5; text-decoration: underline;">View Gist</a>
-      <a id="flashcardLink" href="javascript:void(0)" target="_blank" style="color: #f5f5f5; text-decoration: underline;">Open in Flashcard App</a>
+      <a id="gistLink" href="#" target="_blank" style="color: #f5f5f5; text-decoration: underline;">View Gist</a>
+      <a id="flashcardLink" href="#" target="_blank" style="color: #f5f5f5; text-decoration: underline;">Open in Flashcard App</a>
     </div>
   </section>
 </body>

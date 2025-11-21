@@ -2,6 +2,8 @@
 // Type Definitions
 // ============================================================================
 
+const FLASHCARD_BASE_URL = "https://tbuserdev.github.io/markdown-flashcards/";
+
 interface ExportConfig {
   fileName: string;
   mimeType: string;
@@ -173,7 +175,7 @@ function prepareExport(
 
   if (customFilename) {
       // If it doesn't have an extension, add one based on output format
-      if (!/\.[^.]+$/.test(customFilename)) {
+      if (!customFilename.includes(".")) {
           if (outputFormat === "raw-json") {
               customFilename += ".json";
           } else {
@@ -195,45 +197,37 @@ async function createGist(
   filename: string,
   token: string
 ): Promise<string> {
-  const response = await fetch("https://api.github.com/gists", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      description: "NotebookLM Flashcard Export",
-      public: true, // or false if you prefer secret gists
-      files: {
-        [filename]: {
-          content: content,
-        },
+  try {
+    const response = await fetch("https://api.github.com/gists", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        description: "NotebookLM Flashcard Export",
+        public: false, // Default to secret gists to protect user data
+        files: {
+          [filename]: {
+            content: content,
+          },
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    let errorMessage = `GitHub API Error: ${response.status} ${response.statusText}`;
-    let errorDetails = "";
-    try {
-      const errorJson = await response.json();
-      if (errorJson && errorJson.message) {
-        errorDetails = errorJson.message;
-      }
-    } catch {
-      // Fallback to text if JSON parsing fails
-      errorDetails = await response.text();
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`GitHub API Error: ${response.statusText} - ${errorText}`);
     }
-    if (response.status === 401) {
-      errorMessage = "Invalid GitHub token. Please check your credentials.";
-    } else if (response.status === 403) {
-      errorMessage = "Rate limit exceeded or insufficient permissions for GitHub API.";
+
+    const data = await response.json();
+    return data.html_url;
+  } catch (err: unknown) {
+    if (err instanceof TypeError) {
+      throw new Error("Network error: Please check your internet connection and try again.");
     }
-    throw new Error(`${errorMessage}${errorDetails ? " - " + errorDetails : ""}`);
+    throw err;
   }
-
-  const data = await response.json();
-  return data.html_url;
 }
 
 // ============================================================================
@@ -268,7 +262,8 @@ async function loadSettings(
   patInput: HTMLInputElement,
   filenameInput: HTMLInputElement
 ) {
-  const items = await chrome.storage.sync.get(["githubPat", "defaultFilename"]);
+  // Using local storage instead of sync for sensitive data like PAT
+  const items = await chrome.storage.local.get(["githubPat", "defaultFilename"]);
   if (items.githubPat) {
     patInput.value = items.githubPat as string;
   }
@@ -278,7 +273,8 @@ async function loadSettings(
 }
 
 async function saveSettings(pat: string, filename: string) {
-  await chrome.storage.sync.set({
+  // Using local storage instead of sync for sensitive data like PAT
+  await chrome.storage.local.set({
     githubPat: pat,
     defaultFilename: filename,
   });
@@ -324,14 +320,13 @@ async function handleExport(
     if (pushToGistInput.checked) {
       const token = githubPatInput.value.trim();
       if (!token) {
-        throw new Error("GitHub Personal Access Token is required to export to Gist. Please enter your PAT in the field above or uncheck 'Push to GitHub Gist' to download locally.");
+        throw new Error("GitHub PAT is required for Gist export.");
       }
 
       status.textContent = "Creating Gist...";
       const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token);
 
-      const flashcardBaseUrl = "https://tbuserdev.github.io/markdown-flashcards/";
-      const flashcardUrl = `${flashcardBaseUrl}?preload=${encodeURIComponent(gistUrl)}`;
+      const flashcardUrl = `${FLASHCARD_BASE_URL}?preload=${encodeURIComponent(gistUrl)}`;
 
       gistLinkAnchor.href = gistUrl;
       flashcardLinkAnchor.href = flashcardUrl;
@@ -352,45 +347,50 @@ async function handleExport(
 // Initialization
 // ============================================================================
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const btn = document.getElementById("exportBtn") as HTMLButtonElement | null;
-  const status = document.getElementById("status") as HTMLElement | null;
-  const inputType = document.getElementById(
-    "inputType"
-  ) as HTMLSelectElement | null;
-  const outputFormat = document.getElementById(
-    "outputFormat"
-  ) as HTMLSelectElement | null;
-
-  const githubPatInput = document.getElementById("githubPat") as HTMLInputElement | null;
-  const filenameInput = document.getElementById("filename") as HTMLInputElement | null;
-  const pushToGistInput = document.getElementById("pushToGist") as HTMLInputElement | null;
-  const resultLinksDiv = document.getElementById("resultLinks") as HTMLElement | null;
-  const gistLinkAnchor = document.getElementById("gistLink") as HTMLAnchorElement | null;
-  const flashcardLinkAnchor = document.getElementById("flashcardLink") as HTMLAnchorElement | null;
-
-
-  if (!btn || !status || !inputType || !outputFormat || !githubPatInput || !filenameInput || !pushToGistInput || !resultLinksDiv || !gistLinkAnchor || !flashcardLinkAnchor) {
-    console.error("One or more required elements are missing in the popup.");
-    return;
+function getElement<T extends HTMLElement>(id: string): T {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Required element with id '${id}' not found in the DOM.`);
   }
+  return element as T;
+}
 
-  // Load saved settings
-  await loadSettings(githubPatInput, filenameInput);
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const btn = getElement<HTMLButtonElement>("exportBtn");
+    const status = getElement<HTMLElement>("status");
+    const inputType = getElement<HTMLSelectElement>("inputType");
+    const outputFormat = getElement<HTMLSelectElement>("outputFormat");
+    const githubPatInput = getElement<HTMLInputElement>("githubPat");
+    const filenameInput = getElement<HTMLInputElement>("filename");
+    const pushToGistInput = getElement<HTMLInputElement>("pushToGist");
+    const resultLinksDiv = getElement<HTMLElement>("resultLinks");
+    const gistLinkAnchor = getElement<HTMLAnchorElement>("gistLink");
+    const flashcardLinkAnchor = getElement<HTMLAnchorElement>("flashcardLink");
 
-  btn.addEventListener("click", () =>
-    handleExport(
-        inputType,
-        outputFormat,
-        status,
-        githubPatInput,
-        filenameInput,
-        pushToGistInput,
-        resultLinksDiv,
-        gistLinkAnchor,
-        flashcardLinkAnchor
-    )
-  );
+    // Load saved settings
+    await loadSettings(githubPatInput, filenameInput);
 
-  status.textContent = "Ready for export.";
+    btn.addEventListener("click", () =>
+      handleExport(
+          inputType,
+          outputFormat,
+          status,
+          githubPatInput,
+          filenameInput,
+          pushToGistInput,
+          resultLinksDiv,
+          gistLinkAnchor,
+          flashcardLinkAnchor
+      )
+    );
+
+    status.textContent = "Ready for export.";
+  } catch (error) {
+    console.error("Initialization error:", error);
+    const status = document.getElementById("status");
+    if (status) {
+      status.textContent = "Initialization error. Check console for details.";
+    }
+  }
 });
