@@ -309,7 +309,7 @@ async function handleExport(
     if (pushToGistInput.checked) {
       const token = githubPatInput.value.trim();
       if (!token) {
-        throw new Error("GitHub PAT is required for Gist export.");
+        throw new Error("GitHub Personal Access Token is required to export to Gist. Please enter your PAT in the field above or uncheck 'Push to GitHub Gist' to download locally.");
       }
 
       status.textContent = "Creating Gist...";
