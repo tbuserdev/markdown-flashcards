@@ -140,3 +140,10 @@ vite.config.ts.timestamp-*
 
 # MacOS files
 .DS_Store
+
+# Chrome extension build artifacts
+extension/*.crx
+extension/plugin.pem
+
+# Local extension packages
+extension-*.zip

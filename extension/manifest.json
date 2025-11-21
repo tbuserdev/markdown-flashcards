@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "NotebookLM Extractor",
+  "version": "1.0",
+  "description": "Extracts quiz data from NotebookLM and downloads it as a JSON file.",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "host_permissions": [
+    "https://notebooklm.google.com/*",
+    "https://*.scf.usercontent.goog/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://notebooklm.google.com/*"],
+      "js": ["dist/contentScript.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://*.scf.usercontent.goog/*"],
+      "js": ["dist/contentScript.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}
