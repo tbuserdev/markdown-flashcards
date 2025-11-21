@@ -11,7 +11,8 @@
   ],
   "host_permissions": [
     "https://notebooklm.google.com/*",
-    "https://*.scf.usercontent.goog/*"
+    "https://*.scf.usercontent.goog/*",
+    "https://api.github.com/*"
   ],
   "icons": {
     "16": "public/favicon-16x16.png",
