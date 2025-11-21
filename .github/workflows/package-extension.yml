@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-package:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -42,3 +44,12 @@ jobs:
         with:
           name: notebooklm_extractor-package-${{ github.event.inputs.extension_version }}
           path: notebooklm_extractor-${{ github.event.inputs.extension_version }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.extension_version }}
+          name: NotebookLM Extractor v${{ github.event.inputs.extension_version }}
+          files: notebooklm_extractor-${{ github.event.inputs.extension_version }}.zip
+          draft: false
+          prerelease: false
