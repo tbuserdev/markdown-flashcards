@@ -1,8 +1,12 @@
 // ============================================================================
-// Type Definitions
+// Constants
 // ============================================================================
 
 const FLASHCARD_BASE_URL = "https://tbuserdev.github.io/markdown-flashcards/";
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
 
 interface ExportConfig {
   fileName: string;
@@ -174,15 +178,15 @@ function prepareExport(
   }
 
   if (customFilename) {
-      // If it doesn't have an extension, add one based on output format
-      if (!customFilename.includes(".")) {
-          if (outputFormat === "raw-json") {
-              customFilename += ".json";
-          } else {
-              customFilename += ".md";
-          }
+    // If it doesn't have an extension, add one based on output format
+    if (!customFilename.includes(".")) {
+      if (outputFormat === "raw-json") {
+        customFilename += ".json";
+      } else {
+        customFilename += ".md";
       }
-      config.fileName = customFilename;
+    }
+    config.fileName = customFilename;
   }
 
   return { ...config, itemCount };
@@ -217,14 +221,18 @@ async function createGist(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`GitHub API Error: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `GitHub API Error: ${response.statusText} - ${errorText}`
+      );
     }
 
     const data = await response.json();
     return data.html_url;
   } catch (err: unknown) {
     if (err instanceof TypeError) {
-      throw new Error("Network error: Please check your internet connection and try again.");
+      throw new Error(
+        "Network error: Please check your internet connection and try again."
+      );
     }
     throw err;
   }
@@ -263,7 +271,10 @@ async function loadSettings(
   filenameInput: HTMLInputElement
 ) {
   // Using local storage instead of sync for sensitive data like PAT
-  const items = await chrome.storage.local.get(["githubPat", "defaultFilename"]);
+  const items = await chrome.storage.local.get([
+    "githubPat",
+    "defaultFilename",
+  ]);
   if (items.githubPat) {
     patInput.value = items.githubPat as string;
   }
@@ -324,7 +335,11 @@ async function handleExport(
       }
 
       status.textContent = "Creating Gist...";
-      const gistUrl = await createGist(exportConfig.content, exportConfig.fileName, token);
+      const gistUrl = await createGist(
+        exportConfig.content,
+        exportConfig.fileName,
+        token
+      );
 
       const flashcardUrl = `${FLASHCARD_BASE_URL}?preload=${encodeURIComponent(gistUrl)}`;
 
@@ -337,7 +352,6 @@ async function handleExport(
       downloadFile(exportConfig);
       status.textContent = `Export successful. ${exportConfig.itemCount} items ready to save.`;
     }
-
   } catch (error: unknown) {
     status.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
   }
@@ -373,15 +387,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     btn.addEventListener("click", () =>
       handleExport(
-          inputType,
-          outputFormat,
-          status,
-          githubPatInput,
-          filenameInput,
-          pushToGistInput,
-          resultLinksDiv,
-          gistLinkAnchor,
-          flashcardLinkAnchor
+        inputType,
+        outputFormat,
+        status,
+        githubPatInput,
+        filenameInput,
+        pushToGistInput,
+        resultLinksDiv,
+        gistLinkAnchor,
+        flashcardLinkAnchor
       )
     );
 
