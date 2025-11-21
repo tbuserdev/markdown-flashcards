@@ -146,4 +146,4 @@ extension/*.crx
 extension/plugin.pem
 
 # Local extension packages
-extension-*.zip
+*.zip
