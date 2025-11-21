@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Font Family */
+  --vp-font-family-base: 'Space Grotesk', sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', monospace;
+
+  /* Colors - Matching the Main App's Dark Theme */
+  --vp-c-bg: #0a0a0a; /* neutral-950 */
+  --vp-c-bg-alt: #171717; /* neutral-900 */
+  --vp-c-bg-soft: #262626; /* neutral-800 */
+
+  --vp-c-brand: #e5e5e5; /* neutral-200 */
+  --vp-c-brand-1: #e5e5e5;
+  --vp-c-brand-2: #d4d4d4; /* neutral-300 */
+  --vp-c-brand-3: #a3a3a3; /* neutral-400 */
+
+  --vp-c-text-1: #e5e5e5; /* neutral-200 */
+  --vp-c-text-2: #a3a3a3; /* neutral-400 */
+  --vp-c-text-3: #737373; /* neutral-500 */
+
+  --vp-c-border: #262626; /* neutral-800 */
+  --vp-c-divider: #262626;
+
+  --vp-code-bg: #171717;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Code blocks */
+.vp-doc pre {
+  background-color: #171717 !important;
+  border: 1px solid #262626;
+}
