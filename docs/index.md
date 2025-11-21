@@ -20,3 +20,9 @@ A web-based flashcard trainer that loads decks from Markdown files. It's perfect
 2.  **Extract**: Use the **NotebookLM Extractor** extension to grab that data.
 3.  **Host**: Save it as a **GitHub Gist** (using the extension) or a Markdown file.
 4.  **Study**: Load the Gist URL or file into the **Markdown Flashcards** app to start learning.
+
+## Additional Information
+
+- [Changelog](/misc/changelog) - See what's new and changed in the project.
+- [Privacy Policy](/misc/privacy-policy) - Learn how we handle your data.
+- [Terms of Service](/misc/terms-of-service) - Read the terms governing the use of our services.
