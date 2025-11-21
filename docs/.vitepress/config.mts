@@ -4,6 +4,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Markdown-Flashcards",
   description: "Documentation for the fully local Markdown Flashcards",
+  base: "/markdown-flashcards/docs/",
   themeConfig: {
     nav: [],
 
