@@ -38,7 +38,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE CREATOR
 
 ## 7. Third-Party Services
 
-The Service is hosted on **GitHub Pages** and uses **Simple Analytics** for anonymous usage statistics. By using the Service, you acknowledge that these third-party providers function according to their own Terms of Service and Privacy Policies.
+The Service is hosted on **GitHub Pages** and uses **Plausible** for anonymous usage statistics. By using the Service, you acknowledge that these third-party providers function according to their own Terms of Service and Privacy Policies.
 
 ## 8. Modifications to Terms
 

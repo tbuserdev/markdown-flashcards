@@ -18,14 +18,14 @@ Our core philosophy is simple: **We do not want your data.**
 
 ## 3. Analytics
 
-To understand how many people use our application and which pages are most popular, we use **[Simple Analytics](https://www.simpleanalytics.com/en)**.
+To understand how many people use our application and which pages are most popular, we use **[Plausible](https://plausible.io/)**.
 
-*   **Privacy-First:** Simple Analytics is a privacy-friendly alternative to tools like Google Analytics.
-*   **No Cookies:** Simple Analytics does not use cookies, local storage, or persistent identifiers.
+*   **Privacy-First:** Plausible is a privacy-friendly alternative to tools like Google Analytics.
+*   **No Cookies:** Plausible does not use cookies, local storage, or persistent identifiers.
 *   **No PII:** We do not collect or store Personally Identifiable Information (PII) such as your IP address.
-*   **Compliance:** Simple Analytics is GDPR, CCPA, and PECR compliant.
+*   **Compliance:** Plausible is GDPR, CCPA, and PECR compliant.
 
-You can learn more about their data practices here: [Simple Analytics Privacy Policy](https://simpleanalytics.com/privacy).
+You can learn more about their data practices here: [Plausible Privacy Policy](https://plausible.io/privacy).
 
 ## 4. Hosting and Infrastructure
 
