@@ -154,3 +154,9 @@ extension/plugin.pem
 # Vitepress
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# Lock Files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpmfile.cjs
