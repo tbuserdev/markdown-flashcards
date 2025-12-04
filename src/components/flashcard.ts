@@ -8,6 +8,9 @@ import type { Flashcard } from "../lib/state";
 import { updateNavButtonStates } from "./navigation";
 
 declare const marked: { parse: (markdown: string) => string };
+declare const MathJax: {
+  typesetPromise?: (elements?: HTMLElement[]) => Promise<void>;
+};
 
 export let questionTextEl: HTMLElement;
 export let answerAreaEl: HTMLElement;
@@ -45,6 +48,12 @@ export function displayQuestion(index: number) {
 
   questionTextEl.innerHTML = marked.parse(qData.q);
   answerTextEl.innerHTML = marked.parse(qData.a);
+
+  // Trigger MathJax to render any math content
+  if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+    MathJax.typesetPromise([questionTextEl, answerTextEl]);
+  }
+
   answerAreaEl.classList.add("hidden");
   showAnswerBtn.classList.remove("hidden");
   classificationButtonsContainer.classList.add("hidden");
