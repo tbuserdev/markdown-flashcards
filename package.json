@@ -1,31 +1,46 @@
 {
-  "name": "flashcard-trainer",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:extension": "tsc -p extension/tsconfig.json",
-    "preview": "vite preview",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "format": "prettier --write .",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/chrome": "^0.1.31",
-    "eslint": "^9.39.1",
-    "globals": "^16.5.0",
-    "jiti": "^2.6.1",
-    "prettier": "3.6.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.2",
-    "vitepress": "2.0.0-alpha.14"
-  },
-  "dependencies": {
-    "marked": "^17.0.1",
-    "vue": "^3.5.24"
-  }
+	"name": "flashcard-trainer",
+	"version": "1.0.0",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"build:extension": "tsc -p extension/tsconfig.json",
+		"preview": "vite preview",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write .",
+		"format:check": "prettier --check",
+		"docs:dev": "vitepress dev docs",
+		"docs:build": "vitepress build docs",
+		"docs:preview": "vitepress preview docs"
+	},
+	"dependencies": {
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@tailwindcss/vite": "^4.2.2",
+		"autoprefixer": "^10.4.27",
+		"dompurify": "^3.3.3",
+		"marked": "^17.0.1",
+		"svelte": "^5.55.2",
+		"tailwindcss": "^4.2.2"
+	},
+	"devDependencies": {
+		"@eslint/compat": "^2.0.4",
+		"@eslint/js": "^10.0.1",
+		"@types/chrome": "^0.1.31",
+		"@types/node": "^22",
+		"eslint": "^10.2.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-svelte": "^3.17.0",
+		"globals": "^17.4.0",
+		"jiti": "^2.6.1",
+		"prettier": "^3.8.1",
+		"prettier-plugin-svelte": "^3.5.1",
+		"prettier-plugin-tailwindcss": "^0.7.2",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.58.1",
+		"vite": "^8.0.7",
+		"vitepress": "2.0.0-alpha.14"
+	},
+	"overrides": {
+		"picomatch": "^4.0.4"
+	}
 }

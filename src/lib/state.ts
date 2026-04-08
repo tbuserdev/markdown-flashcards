@@ -1,40 +1,91 @@
-export type FlashcardStatus = "unseen" | "easy" | "medium" | "hard";
+import { derived, writable } from 'svelte/store';
 
-export const DEFAULT_DECK_ID = "default-deck";
+export type FlashcardStatus = 'unseen' | 'easy' | 'medium' | 'hard';
+export type FlashcardFilter = 'all' | FlashcardStatus;
 
 export interface Flashcard {
-  q: string;
-  a: string;
-  status: FlashcardStatus;
+	q: string;
+	a: string;
+	status: FlashcardStatus;
 }
 
 export interface Deck {
-  id: string;
-  name: string;
-  url: string | null;
-  markdown: string;
-  questions: Flashcard[];
+	id: string;
+	name: string;
+	url: string | null;
+	markdown: string;
+	questions: Flashcard[];
 }
 
-export const questions: Flashcard[] = [];
-export let currentQuestionIndex: number = 0;
-export let currentFilter: string = "all";
-export const filteredIndices: number[] = [];
-export let decks: Deck[] = [];
-export let activeDeckId: string | null = null;
+export const DEFAULT_DECK_ID = 'default-deck';
 
-export function setDecks(newDecks: Deck[]) {
-  decks = newDecks;
+export const decks = writable<Deck[]>([]);
+export const activeDeckId = writable<string | null>(null);
+export const currentFilter = writable<FlashcardFilter>('all');
+export const currentQuestionIndex = writable(0);
+export const answerVisible = writable(false);
+
+export const activeDeck = derived(
+	[decks, activeDeckId],
+	([$decks, $activeDeckId]) => $decks.find((deck) => deck.id === $activeDeckId) ?? null
+);
+
+export const activeQuestions = derived(activeDeck, ($activeDeck) =>
+	$activeDeck ? $activeDeck.questions : []
+);
+
+export const filteredIndices = derived(
+	[activeQuestions, currentFilter],
+	([$activeQuestions, $currentFilter]) =>
+		$currentFilter === 'all'
+			? $activeQuestions.map((_, index) => index)
+			: $activeQuestions
+					.map((question, index) => (question.status === $currentFilter ? index : -1))
+					.filter((index) => index >= 0)
+);
+
+export const summaryCounts = derived(activeQuestions, ($activeQuestions) => {
+	const counts = {
+		all: $activeQuestions.length,
+		unseen: 0,
+		easy: 0,
+		medium: 0,
+		hard: 0
+	};
+
+	for (const question of $activeQuestions) {
+		counts[question.status]++;
+	}
+
+	return counts;
+});
+
+export const currentFilteredPosition = derived(
+	[filteredIndices, currentQuestionIndex],
+	([$filteredIndices, $currentQuestionIndex]) => $filteredIndices.indexOf($currentQuestionIndex)
+);
+
+export function setDeckList(nextDecks: Deck[]) {
+	decks.set(nextDecks);
 }
 
-export function setActiveDeckId(id: string | null) {
-  activeDeckId = id;
+export function setActiveDeck(deckId: string | null) {
+	activeDeckId.set(deckId);
+}
+
+export function setCurrentFilter(filter: FlashcardFilter) {
+	currentFilter.set(filter);
 }
 
 export function setCurrentQuestionIndex(index: number) {
-  currentQuestionIndex = index;
+	currentQuestionIndex.set(index);
 }
 
-export function setCurrentFilter(filter: string) {
-  currentFilter = filter;
+export function setAnswerVisible(visible: boolean) {
+	answerVisible.set(visible);
+}
+
+export function resetQuestionState() {
+	currentQuestionIndex.set(0);
+	answerVisible.set(false);
 }

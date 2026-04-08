@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       extension_version:
-        description: "Version for the extension (e.g., 1.0.0)"
+        description: 'Version for the extension (e.g., 1.0.0)'
         required: true
-        default: "latest"
+        default: 'latest'
 
 jobs:
   build-and-package:
@@ -21,12 +21,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: "9"
+          version: '9'
 
       - name: Install dependencies
         run: pnpm install
