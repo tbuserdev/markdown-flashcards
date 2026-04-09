@@ -12,7 +12,6 @@
 		activeQuestions,
 		answerVisible,
 		currentFilter,
-		currentFilteredPosition,
 		currentQuestionIndex,
 		decks,
 		filteredIndices,
@@ -177,9 +176,10 @@
 	}
 
 	function goToNext() {
-		if ($filteredIndices.length === 0) return;
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex === null) return;
 
-		const currentPosition = $filteredIndices.indexOf($currentQuestionIndex);
+		const currentPosition = $filteredIndices.indexOf(visibleIndex);
 		if (currentPosition < 0 || currentPosition >= $filteredIndices.length - 1) {
 			return;
 		}
@@ -189,9 +189,10 @@
 	}
 
 	function goToPrev() {
-		if ($filteredIndices.length === 0) return;
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex === null) return;
 
-		const currentPosition = $filteredIndices.indexOf($currentQuestionIndex);
+		const currentPosition = $filteredIndices.indexOf(visibleIndex);
 		if (currentPosition <= 0) {
 			return;
 		}
@@ -201,12 +202,21 @@
 	}
 
 	function showAnswer() {
-		if ($activeQuestions.length === 0) return;
+		if (getVisibleQuestionIndex() === null) return;
 		setAnswerVisible(true);
 	}
 
+	function getVisibleQuestionIndex(): number | null {
+		if ($filteredIndices.length === 0) return null;
+
+		return $filteredIndices.includes($currentQuestionIndex)
+			? $currentQuestionIndex
+			: $filteredIndices[0];
+	}
+
 	function getCurrentQuestion(): Flashcard | null {
-		return $activeQuestions[$currentQuestionIndex] ?? null;
+		const visibleIndex = getVisibleQuestionIndex();
+		return visibleIndex === null ? null : ($activeQuestions[visibleIndex] ?? null);
 	}
 
 	function getQuestionHtml(): string {
@@ -220,23 +230,30 @@
 	}
 
 	function getQuestionCounterText(): string {
-		if ($filteredIndices.length > 0 && $currentFilteredPosition >= 0) {
-			return `Question ${$currentFilteredPosition + 1} / ${$filteredIndices.length}`;
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex !== null) {
+			const visiblePosition = $filteredIndices.indexOf(visibleIndex);
+			if (visiblePosition >= 0) {
+				return `Question ${visiblePosition + 1} / ${$filteredIndices.length}`;
+			}
 		}
 
 		return `Question 0 / ${$filteredIndices.length}`;
 	}
 
 	function getCanGoPrev(): boolean {
-		return $filteredIndices.length > 0 && $currentFilteredPosition > 0;
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex === null) return false;
+
+		return $filteredIndices.indexOf(visibleIndex) > 0;
 	}
 
 	function getCanGoNext(): boolean {
-		return (
-			$filteredIndices.length > 0 &&
-			$currentFilteredPosition >= 0 &&
-			$currentFilteredPosition < $filteredIndices.length - 1
-		);
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex === null) return false;
+
+		const currentPosition = $filteredIndices.indexOf(visibleIndex);
+		return currentPosition >= 0 && currentPosition < $filteredIndices.length - 1;
 	}
 
 	function getEmptyStateMessage(): string {
@@ -249,10 +266,13 @@
 		if (!$activeDeck) return;
 		if ($activeQuestions.length === 0) return;
 
-		const currentPosition = $filteredIndices.indexOf($currentQuestionIndex);
+		const visibleIndex = getVisibleQuestionIndex();
+		if (visibleIndex === null) return;
+
+		const currentPosition = $filteredIndices.indexOf(visibleIndex);
 		const nextIndex = currentPosition >= 0 ? $filteredIndices[currentPosition + 1] : undefined;
 
-		const nextDecks = classifyQuestion($decks, $activeDeck.id, $currentQuestionIndex, status);
+		const nextDecks = classifyQuestion($decks, $activeDeck.id, visibleIndex, status);
 
 		setDeckList(nextDecks);
 		saveDecks(nextDecks);
