@@ -112,7 +112,9 @@ async function decryptPat(encryptedPat: string): Promise<string> {
 		return decoder.decode(decryptedData);
 	} catch (err) {
 		console.error('Failed to decrypt PAT:', err);
-		throw new Error('Failed to decrypt GitHub PAT. The stored token may be corrupted.');
+		throw new Error('Failed to decrypt GitHub PAT. The stored token may be corrupted.', {
+			cause: err
+		});
 	}
 }
 

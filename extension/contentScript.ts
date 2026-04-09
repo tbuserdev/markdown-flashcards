@@ -86,7 +86,7 @@ function parseAppData(rawData: string): NotebookLM_Flashcard | NotebookLM_Quiz {
 		return JSON.parse(cleanJsonString);
 	} catch (e) {
 		console.error('Error parsing the JSON:', e);
-		throw new Error('JSON parse error');
+		throw new Error('JSON parse error', { cause: e });
 	}
 }
 

@@ -32,7 +32,9 @@ export async function createGist(
 			try {
 				data = await response.json();
 			} catch (err) {
-				throw new Error(`Failed to parse GitHub API response as JSON: ${err}`);
+				throw new Error(`Failed to parse GitHub API response as JSON: ${err}`, {
+					cause: err
+				});
 			}
 		} else {
 			const text = await response.text();
@@ -41,7 +43,9 @@ export async function createGist(
 		return data.html_url;
 	} catch (err: unknown) {
 		if (err instanceof TypeError) {
-			throw new Error('Network error: Please check your internet connection and try again.');
+			throw new Error('Network error: Please check your internet connection and try again.', {
+				cause: err
+			});
 		}
 		throw err;
 	}
