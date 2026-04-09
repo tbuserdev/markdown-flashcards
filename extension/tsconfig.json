@@ -1,14 +1,14 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "dist",
-    "types": ["chrome"],
-    "noEmit": false,
-    "module": "ES2022",
-    "target": "ES2022",
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": false
-  },
-  "include": ["."]
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "dist",
+		"types": ["chrome"],
+		"noEmit": false,
+		"module": "ES2022",
+		"target": "ES2022",
+		"moduleResolution": "Bundler",
+		"resolveJsonModule": false
+	},
+	"include": ["."]
 }

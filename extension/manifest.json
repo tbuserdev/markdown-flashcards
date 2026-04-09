@@ -1,41 +1,41 @@
 {
-  "manifest_version": 3,
-  "name": "NotebookLM Extractor",
-  "version": "2.0",
-  "description": "Extracts quiz data from NotebookLM and downloads it as a JSON file.",
-  "permissions": ["activeTab", "scripting", "downloads", "storage"],
-  "host_permissions": [
-    "https://notebooklm.google.com/*",
-    "https://*.scf.usercontent.goog/*",
-    "https://api.github.com/*"
-  ],
-  "icons": {
-    "16": "public/favicon-16x16.png",
-    "32": "public/favicon-32x32.png",
-    "48": "public/favicon-32x32.png",
-    "128": "public/favicon-144x144.png"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "public/favicon-16x16.png",
-      "32": "public/favicon-32x32.png",
-      "48": "public/favicon-32x32.png",
-      "128": "public/favicon-144x144.png"
-    }
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://notebooklm.google.com/*"],
-      "js": ["dist/contentScript.js"],
-      "run_at": "document_start",
-      "all_frames": true
-    },
-    {
-      "matches": ["https://*.scf.usercontent.goog/*"],
-      "js": ["dist/contentScript.js"],
-      "run_at": "document_start",
-      "all_frames": true
-    }
-  ]
+	"manifest_version": 3,
+	"name": "NotebookLM Extractor",
+	"version": "2.0",
+	"description": "Extracts quiz data from NotebookLM and downloads it as a JSON file.",
+	"permissions": ["activeTab", "scripting", "downloads", "storage"],
+	"host_permissions": [
+		"https://notebooklm.google.com/*",
+		"https://*.scf.usercontent.goog/*",
+		"https://api.github.com/*"
+	],
+	"icons": {
+		"16": "public/favicon-16x16.png",
+		"32": "public/favicon-32x32.png",
+		"48": "public/favicon-32x32.png",
+		"128": "public/favicon-144x144.png"
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "public/favicon-16x16.png",
+			"32": "public/favicon-32x32.png",
+			"48": "public/favicon-32x32.png",
+			"128": "public/favicon-144x144.png"
+		}
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://notebooklm.google.com/*"],
+			"js": ["dist/contentScript.js"],
+			"run_at": "document_start",
+			"all_frames": true
+		},
+		{
+			"matches": ["https://*.scf.usercontent.goog/*"],
+			"js": ["dist/contentScript.js"],
+			"run_at": "document_start",
+			"all_frames": true
+		}
+	]
 }

@@ -30,5 +30,6 @@ This will compile the TypeScript files to JavaScript in the `dist/` directory.
 ### Updating
 
 If you make changes to the code:
+
 1.  Run `pnpm build:extension` again.
 2.  Go to `chrome://extensions/` and click the reload icon on the extension card.
