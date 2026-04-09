@@ -417,8 +417,16 @@
 	}
 
 	function handleFilterChange(event: CustomEvent<'all' | FlashcardStatus>) {
-		setCurrentFilter(event.detail);
-		setCurrentQuestionIndex(0);
+		const nextFilter = event.detail;
+		const nextFilteredIndices =
+			nextFilter === 'all'
+				? $activeQuestions.map((_, index) => index)
+				: $activeQuestions
+						.map((question, index) => (question.status === nextFilter ? index : -1))
+						.filter((index) => index >= 0);
+
+		setCurrentFilter(nextFilter);
+		setCurrentQuestionIndex(nextFilteredIndices[0] ?? 0);
 		setAnswerVisible(false);
 	}
 

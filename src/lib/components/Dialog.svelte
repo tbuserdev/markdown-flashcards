@@ -7,6 +7,9 @@
 	export let maxWidth = 'max-w-lg';
 
 	const dispatch = createEventDispatcher<{ close: void }>();
+	const dialogBaseId = `dialog-${crypto.randomUUID()}`;
+	const titleId = `${dialogBaseId}-title`;
+	const subtitleId = `${dialogBaseId}-subtitle`;
 
 	const emitClose = () => dispatch('close');
 </script>
@@ -17,8 +20,8 @@
 			class={`w-full ${maxWidth} rounded border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black/40`}
 			role="dialog"
 			aria-modal="true"
-			aria-labelledby="dialog-title"
-			aria-describedby={subtitle ? 'dialog-subtitle' : undefined}
+			aria-labelledby={titleId}
+			aria-describedby={subtitle ? subtitleId : undefined}
 			tabindex="0"
 			on:keydown={(event) => {
 				if (event.key === 'Escape') {
@@ -29,9 +32,9 @@
 			<div class="border-b border-neutral-800 p-5">
 				<div class="flex items-start justify-between gap-4">
 					<div>
-						<h2 id="dialog-title" class="text-base font-semibold text-neutral-100">{title}</h2>
+						<h2 id={titleId} class="text-base font-semibold text-neutral-100">{title}</h2>
 						{#if subtitle}
-							<p id="dialog-subtitle" class="mt-1 text-sm text-neutral-400">{subtitle}</p>
+							<p id={subtitleId} class="mt-1 text-sm text-neutral-400">{subtitle}</p>
 						{/if}
 					</div>
 					<button

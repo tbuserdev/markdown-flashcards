@@ -10,7 +10,12 @@
 	export let toasts: ToastItem[] = [];
 </script>
 
-<div class="fixed right-4 bottom-4 z-50 flex w-[min(92vw,24rem)] flex-col gap-2">
+<div
+	class="fixed right-4 bottom-4 z-50 flex w-[min(92vw,24rem)] flex-col gap-2"
+	role="status"
+	aria-live="polite"
+	aria-atomic="true"
+>
 	{#each toasts as toast (toast.id)}
 		<div
 			class={`rounded border px-4 py-3 text-sm shadow-lg backdrop-blur ${
