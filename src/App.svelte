@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { afterUpdate, onMount, tick } from 'svelte';
 	import DeckSelector from './lib/components/DeckSelector.svelte';
 	import FilterBar from './lib/components/FilterBar.svelte';
 	import FlashcardView from './lib/components/FlashcardView.svelte';
@@ -39,7 +39,6 @@
 		updateDeck
 	} from './lib/services/decks';
 	import {
-		clearStoredAppData,
 		createDefaultDeck,
 		loadActiveDeckId,
 		loadDecks,
@@ -67,7 +66,6 @@
 	let importDialogOpen = false;
 	let renameDialogOpen = false;
 	let deleteDialogOpen = false;
-	let clearDialogOpen = false;
 	let shareFallbackDialogOpen = false;
 
 	let importSourceUrl = '';
@@ -85,13 +83,6 @@
 	let toasts: ToastItem[] = [];
 	let toastCounter = 0;
 
-	let currentQuestion: Flashcard | null = null;
-	let questionHtml = '';
-	let answerHtml = '';
-	let questionCounterText = 'Question 0 / 0';
-	let emptyStateMessage = 'No questions found. Load a Markdown file.';
-	let canGoPrev = false;
-	let canGoNext = false;
 	let isNameConflict = false;
 	let lastRenderedQuestionKey = '';
 
@@ -164,14 +155,6 @@
 		deleteDialogOpen = false;
 	}
 
-	function openClearDialog() {
-		clearDialogOpen = true;
-	}
-
-	function closeClearDialog() {
-		clearDialogOpen = false;
-	}
-
 	function openShareFallbackDialog(url: string) {
 		shareFallbackUrl = url;
 		shareFallbackDialogOpen = true;
@@ -220,6 +203,46 @@
 	function showAnswer() {
 		if ($activeQuestions.length === 0) return;
 		setAnswerVisible(true);
+	}
+
+	function getCurrentQuestion(): Flashcard | null {
+		return $activeQuestions[$currentQuestionIndex] ?? null;
+	}
+
+	function getQuestionHtml(): string {
+		const currentQuestion = getCurrentQuestion();
+		return currentQuestion ? renderMarkdown(currentQuestion.q) : '';
+	}
+
+	function getAnswerHtml(): string {
+		const currentQuestion = getCurrentQuestion();
+		return currentQuestion ? renderMarkdown(currentQuestion.a) : '';
+	}
+
+	function getQuestionCounterText(): string {
+		if ($filteredIndices.length > 0 && $currentFilteredPosition >= 0) {
+			return `Question ${$currentFilteredPosition + 1} / ${$filteredIndices.length}`;
+		}
+
+		return `Question 0 / ${$filteredIndices.length}`;
+	}
+
+	function getCanGoPrev(): boolean {
+		return $filteredIndices.length > 0 && $currentFilteredPosition > 0;
+	}
+
+	function getCanGoNext(): boolean {
+		return (
+			$filteredIndices.length > 0 &&
+			$currentFilteredPosition >= 0 &&
+			$currentFilteredPosition < $filteredIndices.length - 1
+		);
+	}
+
+	function getEmptyStateMessage(): string {
+		return $activeQuestions.length > 0 && $filteredIndices.length === 0
+			? 'No questions found in this filter.'
+			: 'No questions found. Load a Markdown file.';
 	}
 
 	function classifyCurrentQuestion(status: FlashcardStatus) {
@@ -376,19 +399,6 @@
 		closeDeleteDialog();
 	}
 
-	function clearAllData() {
-		clearStoredAppData();
-		const defaultDeck = createDefaultDeck();
-		setDeckList([defaultDeck]);
-		setActiveDeck(defaultDeck.id);
-		saveDecks([defaultDeck]);
-		saveActiveDeckId(defaultDeck.id);
-		setCurrentFilter('all');
-		resetQuestionState();
-		addToast('All stored data was cleared.', 'success');
-		closeClearDialog();
-	}
-
 	async function copyShareUrl() {
 		if (!$activeDeck?.url) {
 			addToast('Load a deck from a URL before sharing it.', 'warning');
@@ -404,14 +414,6 @@
 			console.warn('Clipboard copy failed:', error);
 			openShareFallbackDialog(shareUrl);
 		}
-	}
-
-	function handleDeckAction(event: CustomEvent<unknown>) {
-		const action = String(event.detail ?? '');
-		if (action === 'add') openImportDialog();
-		if (action === 'rename') openRenameDialog();
-		if (action === 'delete') openDeleteDialog();
-		if (action === 'share') void copyShareUrl();
 	}
 
 	function handleFilterChange(event: CustomEvent<'all' | FlashcardStatus>) {
@@ -484,8 +486,6 @@
 				closeRenameDialog();
 			} else if (deleteDialogOpen) {
 				closeDeleteDialog();
-			} else if (clearDialogOpen) {
-				closeClearDialog();
 			}
 		}
 	}
@@ -522,29 +522,19 @@
 		}
 	});
 
-	$: currentQuestion = $activeQuestions[$currentQuestionIndex] ?? null;
-	$: questionHtml = currentQuestion ? renderMarkdown(currentQuestion.q) : '';
-	$: answerHtml = currentQuestion ? renderMarkdown(currentQuestion.a) : '';
-	$: questionCounterText =
-		$filteredIndices.length > 0 && $currentFilteredPosition >= 0
-			? `Question ${$currentFilteredPosition + 1} / ${$filteredIndices.length}`
-			: `Question 0 / ${$filteredIndices.length}`;
-	$: canGoPrev = $filteredIndices.length > 0 && $currentFilteredPosition > 0;
-	$: canGoNext =
-		$filteredIndices.length > 0 &&
-		$currentFilteredPosition >= 0 &&
-		$currentFilteredPosition < $filteredIndices.length - 1;
-	$: emptyStateMessage =
-		$activeQuestions.length > 0 && $filteredIndices.length === 0
-			? 'No questions found in this filter.'
-			: 'No questions found. Load a Markdown file.';
-	$: if (currentQuestion) {
+	afterUpdate(() => {
+		const currentQuestion = getCurrentQuestion();
+		if (!currentQuestion) {
+			lastRenderedQuestionKey = '';
+			return;
+		}
+
 		const renderedKey = `${currentQuestion.q}:::${currentQuestion.a}`;
 		if (renderedKey !== lastRenderedQuestionKey) {
 			lastRenderedQuestionKey = renderedKey;
 			void queueMathTypeset();
 		}
-	}
+	});
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -567,10 +557,10 @@
 					decks={$decks}
 					activeDeckId={$activeDeckId}
 					on:select={(event) => syncSelectedDeck(event.detail)}
-					on:add={handleDeckAction}
-					on:rename={handleDeckAction}
-					on:delete={handleDeckAction}
-					on:share={handleDeckAction}
+					on:add={() => openImportDialog()}
+					on:rename={() => openRenameDialog()}
+					on:delete={() => openDeleteDialog()}
+					on:share={() => void copyShareUrl()}
 				/>
 			</div>
 			<div class="flex w-full flex-wrap justify-between gap-2">
@@ -581,7 +571,7 @@
 				/>
 				<div class="flex items-center gap-4">
 					<div id="question-counter" class="flex items-center text-sm font-normal text-neutral-500">
-						{questionCounterText}
+						{getQuestionCounterText()}
 						<span class="ml-2 rounded bg-neutral-700 px-1 text-xs text-neutral-300">i</span>
 					</div>
 				</div>
@@ -590,10 +580,10 @@
 
 		<div class="flex-grow overflow-y-auto p-6 md:p-10">
 			<FlashcardView
-				{questionHtml}
-				{answerHtml}
+				questionHtml={getQuestionHtml()}
+				answerHtml={getAnswerHtml()}
 				answerVisible={$answerVisible}
-				emptyMessage={emptyStateMessage}
+				emptyMessage={getEmptyStateMessage()}
 			/>
 		</div>
 
@@ -604,7 +594,7 @@
 			<button
 				id="prev-btn"
 				class="rounded bg-neutral-800 px-6 py-3 font-normal text-neutral-200 transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
-				disabled={!canGoPrev}
+				disabled={!getCanGoPrev()}
 				on:click={goToPrev}
 			>
 				&larr;
@@ -628,7 +618,7 @@
 			<button
 				id="next-btn"
 				class="rounded bg-neutral-800 px-6 py-3 font-normal text-neutral-200 transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
-				disabled={!canGoNext}
+				disabled={!getCanGoNext()}
 				on:click={goToNext}
 			>
 				&rarr;
@@ -864,35 +854,6 @@
 					on:click={deleteActiveDeck}
 				>
 					Delete
-				</button>
-			</div>
-		</div>
-	</Dialog>
-
-	<Dialog
-		open={clearDialogOpen}
-		title="Clear all data"
-		subtitle="Remove all stored decks and progress from this browser."
-		on:close={closeClearDialog}
-	>
-		<div class="space-y-4">
-			<div class="rounded border border-red-500/30 bg-red-950/50 px-3 py-2 text-sm text-red-100">
-				This will remove every stored deck and reset the app to the quickstart deck.
-			</div>
-			<div class="flex items-center justify-end gap-2">
-				<button
-					class="rounded bg-neutral-800 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700"
-					type="button"
-					on:click={closeClearDialog}
-				>
-					Cancel
-				</button>
-				<button
-					class="rounded bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-400"
-					type="button"
-					on:click={clearAllData}
-				>
-					Delete All
 				</button>
 			</div>
 		</div>
