@@ -20,7 +20,7 @@
 		value={activeDeckId ?? ''}
 		on:change={(event) => dispatch('select', (event.currentTarget as HTMLSelectElement).value)}
 	>
-		{#each decks as deck}
+		{#each decks as deck (deck.id)}
 			<option value={deck.id}>{deck.name}</option>
 		{/each}
 	</select>

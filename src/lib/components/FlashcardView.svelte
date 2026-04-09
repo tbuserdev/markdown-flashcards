@@ -6,6 +6,7 @@
 	export let answerLabel = 'Answer';
 </script>
 
+<!-- eslint-disable svelte/no-at-html-tags -->
 <div id="question-area">
 	<div class="mb-6 text-lg font-normal text-neutral-100 md:text-xl" id="question-text">
 		{#if questionHtml}

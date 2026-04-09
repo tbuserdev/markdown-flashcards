@@ -24,7 +24,7 @@
 
 <div class="flex w-full flex-wrap justify-between gap-2">
 	<div class="flex flex-wrap gap-2 overflow-x-auto md:overflow-visible">
-		{#each filters as filter}
+		{#each filters as filter (filter.id)}
 			<button
 				class:bg-neutral-100={activeFilter === filter.id}
 				class:text-neutral-900={activeFilter === filter.id}
