@@ -658,28 +658,28 @@
 		class="absolute bottom-4 mt-4 flex gap-4 text-center text-xs text-neutral-400 text-neutral-500"
 	>
 		<a
-			href="https://tbuserdev.github.io/markdown-flashcards/docs/"
+			href="https://markdown-flashcards.tbuser.dev/docs/"
 			class="transition-colors hover:text-neutral-300"
 		>
 			Documentation
 		</a>
 		<p>|</p>
 		<a
-			href="https://tbuserdev.github.io/markdown-flashcards/docs/misc/privacy-policy"
+			href="https://markdown-flashcards.tbuser.dev/docs/misc/privacy-policy"
 			class="transition-colors hover:text-neutral-300"
 		>
 			Privacy Policy
 		</a>
 		<p>|</p>
 		<a
-			href="https://tbuserdev.github.io/markdown-flashcards/docs/misc/terms-of-service"
+			href="https://markdown-flashcards.tbuser.dev/docs/misc/terms-of-service"
 			class="transition-colors hover:text-neutral-300"
 		>
 			Terms of Service
 		</a>
 		<p>|</p>
 		<a
-			href="https://tbuserdev.github.io/markdown-flashcards/docs/misc/changelog"
+			href="https://markdown-flashcards.tbuser.dev/docs/misc/changelog"
 			class="transition-colors hover:text-neutral-300"
 		>
 			Changelog

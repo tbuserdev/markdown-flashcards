@@ -4,7 +4,7 @@
 
 ## 1. Acceptance of Terms
 
-By accessing and using **Markdown-Flashcards** (the "Service"), hosted at **https://tbuserdev.github.io/markdown-flashcards/**, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+By accessing and using **Markdown-Flashcards** (the "Service"), hosted at **https://markdown-flashcards.tbuser.dev/**, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
 
 ## 2. The Service & Open Source License
 

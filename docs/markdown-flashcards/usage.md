@@ -9,7 +9,7 @@ There are two ways to get flashcards into the app:
 The easiest way to share or load a deck is by adding a `?preload=` parameter to the app's URL.
 
 Example:
-`https://tbuserdev.github.io/markdown-flashcards/?preload=https://gist.githubusercontent.com/...`
+`https://markdown-flashcards.tbuser.dev/?preload=https://gist.githubusercontent.com/...`
 
 When you open this link, the app will automatically ask if you want to import the deck.
 
