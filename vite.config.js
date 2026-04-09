@@ -3,6 +3,6 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	base: '/markdown-flashcards/',
+	base: './',
 	plugins: [tailwindcss(), svelte()]
 });

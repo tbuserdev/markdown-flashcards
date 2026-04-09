@@ -4,7 +4,7 @@
 
 ## 1. Introduction
 
-Welcome to **Markdown-flashcards** ("we," "our," or "us"). We believe that your writing belongs to you. This Privacy Policy explains how we handle your information when you use our application hosted at **[https://tbuserdev.github.io/markdown-flashcards/](https://tbuserdev.github.io/markdown-flashcards/)**.
+Welcome to **Markdown-flashcards** ("we," "our," or "us"). We believe that your writing belongs to you. This Privacy Policy explains how we handle your information when you use our application hosted at **[https://markdown-flashcards.tbuser.dev/](https://markdown-flashcards.tbuser.dev/)**.
 
 Our core philosophy is simple: **We do not want your data.**
 

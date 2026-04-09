@@ -1,10 +1,22 @@
 import { defineConfig } from 'vitepress';
 
+const siteUrl = 'https://markdown-flashcards.tbuser.dev';
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
 	title: 'Markdown-Flashcards',
 	description: 'Documentation for the fully local Markdown Flashcards',
-	base: '/markdown-flashcards/docs/',
+	base: '/docs/',
+	head: [
+		[
+			'link',
+			{
+				rel: 'icon',
+				href: '/docs/favicon.svg',
+				type: 'image/svg+xml'
+			}
+		]
+	],
 	themeConfig: {
 		nav: [
 			{
@@ -13,7 +25,7 @@ export default defineConfig({
 			},
 			{
 				text: 'App',
-				link: 'https://tbuserdev.github.io/markdown-flashcards/'
+				link: siteUrl
 			},
 			{
 				text: 'GitHub',
